@@ -18,7 +18,7 @@ test.describe("Meldrift Free Edition home", () => {
     });
 
     test("opens the single board directly without authentication controls", async ({ page }) => {
-        await expect(page).toHaveTitle(/Meldrift Free Edition/i);
+        await expect(page).toHaveTitle(/^Meldrift$/i);
         await expect(page.locator(".board-scroll-layer")).toBeVisible();
         const wordmark = page.getByRole("link", { name: "Meldrift home" });
         await expect(wordmark).toBeVisible();
