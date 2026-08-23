@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import BoardMenu from "@/components/BoardMenu";
 import AboutModal from "@/components/AboutModal";
@@ -6,7 +6,6 @@ import BoardMessage from "@/components/BoardMessage";
 import BoardNavigator from "@/components/BoardNavigator";
 import BoardToolBar from "@/components/BoardToolBar";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import ImageUrlModal from "@/components/ImageUrlModal";
 import PressableButton from "@/components/PressableButton";
 
 describe("PressableButton", () => {
@@ -30,9 +29,10 @@ describe("ConfirmDialog", () => {
     it("renders through a portal and dispatches confirm and cancel", () => {
         const onConfirm = vi.fn();
         const onCancel = vi.fn();
-        render(<ConfirmDialog message="Delete card?" onConfirm={onConfirm} onCancel={onCancel} />);
+        render(<ConfirmDialog title="Reset KyuBoard Lite?" message="Once deleted, your board data cannot be recovered." onConfirm={onConfirm} onCancel={onCancel} />);
 
-        expect(screen.getByText("Delete card?")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Reset KyuBoard Lite?" })).toBeInTheDocument();
+        expect(screen.getByText("Once deleted, your board data cannot be recovered.")).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "Yes" }));
         fireEvent.click(screen.getByRole("button", { name: "No" }));
         expect(onConfirm).toHaveBeenCalledOnce();
@@ -43,32 +43,20 @@ describe("ConfirmDialog", () => {
 describe("Lite board controls", () => {
     afterEach(() => vi.unstubAllGlobals());
 
-    it("validates and submits an HTTP image URL", async () => {
-        const onSubmit = vi.fn().mockResolvedValue(true);
-        const onClose = vi.fn();
-        render(<ImageUrlModal onClose={onClose} onSubmit={onSubmit} />);
-
-        fireEvent.change(screen.getByLabelText("Image URL"), { target: { value: "ftp://example.com/image.png" } });
-        fireEvent.click(screen.getByRole("button", { name: "Add image" }));
-        expect(await screen.findByText(/valid HTTP or HTTPS/i)).toBeInTheDocument();
-
-        fireEvent.change(screen.getByLabelText("Image URL"), { target: { value: "https://example.com/image.png" } });
-        fireEvent.change(screen.getByLabelText("Label (optional)"), { target: { value: " Example " } });
-        fireEvent.click(screen.getByRole("button", { name: "Add image" }));
-        await waitFor(() => expect(onSubmit).toHaveBeenCalledWith("https://example.com/image.png", "Example"));
-        expect(onClose).toHaveBeenCalledOnce();
-    });
-
     it("disables Export while a card is being edited", () => {
+        const onReset = vi.fn();
+        const setMenuOpen = vi.fn();
         render(<BoardMenu
             menuOpen
             currentBoard={{ title: "KyuBoard Lite" }}
-            setMenuOpen={vi.fn()}
+            setMenuOpen={setMenuOpen}
             exportDisabled
             transferring={false}
+            resetting={false}
             onExport={vi.fn()}
             onImport={vi.fn()}
             onCompileMarkdown={vi.fn()}
+            onReset={onReset}
             onAbout={vi.fn()}
         />);
 
@@ -76,8 +64,16 @@ describe("Lite board controls", () => {
         expect(screen.getByRole("button", { name: "Export" }).querySelector(".lucide-download")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Import" }).querySelector(".lucide-folder-open")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Compile to Markdown" }).querySelector(".lucide-file-text")).toBeInTheDocument();
+        const resetButton = screen.getByRole("button", { name: "Reset" });
+        expect(resetButton.querySelector(".lucide-shredder")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "About" }).querySelector(".lucide-info")).toBeInTheDocument();
         expect(screen.getByText("Finish editing before exporting.")).toBeVisible();
+
+        const compileButton = screen.getByRole("button", { name: "Compile to Markdown" });
+        expect(compileButton.compareDocumentPosition(resetButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        fireEvent.click(resetButton);
+        expect(setMenuOpen).toHaveBeenCalledWith(false);
+        expect(onReset).toHaveBeenCalledOnce();
     });
 
     it("shows contact links in the About modal and closes with Escape", () => {
@@ -247,7 +243,7 @@ describe("BoardMessage", () => {
     it("dismisses a visible message after 3.5 seconds", () => {
         vi.useFakeTimers();
         const onDismiss = vi.fn();
-        render(<BoardMessage type="memo" message="No memos exist." onDismiss={onDismiss} />);
+        render(<BoardMessage type="board" message="The board could not be saved." onDismiss={onDismiss} />);
 
         act(() => vi.advanceTimersByTime(3499));
         expect(onDismiss).not.toHaveBeenCalled();

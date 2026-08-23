@@ -12,6 +12,8 @@ export interface ImageCardData {
     imageId: number;
     boardId: number;
     url: string;
+    data: Uint8Array | null;
+    mimeType: string | null;
     label: string | null;
     x: number;
     y: number;
@@ -22,16 +24,12 @@ export interface ImageCardData {
 
 type UseImageCardOptions = {
     image: ImageCardData;
-    canEdit: boolean;
     isEditing: boolean;
     onEditing: () => void;
     onEditingClear: () => void;
-    onPermissionDenied: () => void;
     onUpdate: (
         imageId: number,
         boardId: number,
-        url: string,
-        label: string | null,
         x: number,
         y: number,
         z: number,
@@ -43,11 +41,9 @@ type UseImageCardOptions = {
 
 export function useImageCard({
     image,
-    canEdit,
     isEditing,
     onEditing,
     onEditingClear,
-    onPermissionDenied,
     onUpdate,
     onDelete,
 }: UseImageCardOptions) {
@@ -68,8 +64,6 @@ export function useImageCard({
         onUpdate(
             image.imageId,
             image.boardId,
-            image.url,
-            image.label,
             Math.round(latestImageState.x),
             Math.round(latestImageState.y),
             image.z,
@@ -79,18 +73,11 @@ export function useImageCard({
     }, [
         image.boardId,
         image.imageId,
-        image.label,
-        image.url,
         image.z,
         onUpdate,
     ]);
 
     const editImage = () => {
-        if (!canEdit) {
-            onPermissionDenied();
-            return;
-        }
-
         onEditing();
     };
 

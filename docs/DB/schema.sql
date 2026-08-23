@@ -1,5 +1,5 @@
 PRAGMA foreign_keys = ON;
-PRAGMA user_version = 1;
+PRAGMA user_version = 2;
 
 CREATE TABLE boards (
     board_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,7 +27,9 @@ CREATE TABLE memos (
 CREATE TABLE images (
     image_id INTEGER PRIMARY KEY AUTOINCREMENT,
     board_id INTEGER NOT NULL REFERENCES boards(board_id) ON DELETE CASCADE,
-    url TEXT NOT NULL,
+    url TEXT NOT NULL DEFAULT '',
+    image_data BLOB,
+    mime_type TEXT,
     label TEXT,
     x INTEGER NOT NULL DEFAULT 0,
     y INTEGER NOT NULL DEFAULT 0,

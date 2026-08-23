@@ -483,7 +483,7 @@ export function useAiAssistant({
                 .filter((image) => image.imageId > 0)
                 .map((image) => ({
                     id: image.imageId,
-                    summary: (image.label ?? image.url).slice(0, 120),
+                    summary: ((image.label ?? image.url) || "Local image").slice(0, 120),
                 })),
             capacity: getPlanCapacity(boardBounds),
         };

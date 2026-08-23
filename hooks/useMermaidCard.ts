@@ -14,11 +14,9 @@ export type MermaidCardData = {
 
 type UseMermaidCardOptions = {
     mermaid: MermaidCardData;
-    canEdit: boolean;
     isEditing: boolean;
     onEditing: () => void;
     onEditingClear: () => void;
-    onPermissionDenied: () => void;
     onUpdate: (
         id: number,
         boardId: number,
@@ -44,11 +42,9 @@ type UseMermaidCardOptions = {
 
 export function useMermaidCard({
     mermaid,
-    canEdit,
     isEditing,
     onEditing,
     onEditingClear,
-    onPermissionDenied,
     onInsert,
     onUpdate,
     onDelete,
@@ -117,11 +113,6 @@ export function useMermaidCard({
     }, [insertMermaid, mermaid.id, updateMermaid]);
 
     const editMermaid = () => {
-        if (!canEdit) {
-            onPermissionDenied();
-            return;
-        }
-
         onEditing();
     };
 

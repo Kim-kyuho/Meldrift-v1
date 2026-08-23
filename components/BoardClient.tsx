@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ImageCard from "./ImageCard";
-import ImageUrlModal from "./ImageUrlModal";
 import AboutModal from "./AboutModal";
 import AiAssistantButton from "./AiAssistantButton";
 import AiChatPanel from "./AiChatPanel";
@@ -18,6 +17,7 @@ import MermaidCard from "./MermaidCard";
 import TableCard from "./TableCard";
 import DrawingLayer from "./DrawingLayer";
 import DrawingToolBar from "./DrawingToolBar";
+import ConfirmDialog from "./ConfirmDialog";
 import { useBoardDrawing } from "@/hooks/useBoardDrawing";
 import { useCardLayer } from "@/hooks/useCardLayer";
 import { useBoardImages } from "@/hooks/useBoardImages";
@@ -32,6 +32,7 @@ import { useBoardTransfer } from "@/hooks/useBoardTransfer";
 import { useAiAssistant } from "@/hooks/useAiAssistant";
 import { defaultBoard, type BoardSnapshot } from "@/lib/board-state";
 import { loadBoardState, replaceBoardState } from "@/lib/browser-db/client";
+import { imageInputAccept } from "@/lib/image-file";
 
 // 보드 컴포넌트
 export default function BoardClient() {
@@ -45,9 +46,7 @@ export default function BoardClient() {
     const [aboutOpen, setAboutOpen] = useState(false);
     const [markdownViewOpen, setMarkdownViewOpen] = useState(false);
     const [boardNavigatorOpen, setBoardNavigatorOpen] = useState(false);
-    const [permissionMessage, setPermissionMessage] = useState("");
-    const canEditCard = true;
-    const showPermissionMessage = () => undefined;
+    const [boardMessage, setBoardMessage] = useState("");
 
     const {
         boardZoom,
@@ -55,13 +54,13 @@ export default function BoardClient() {
     } = useBoardZoom();
 
     const {
+        imageInputRef,
         images,
         setImages,
         editingImageId,
         setEditingImageId,
-        imageUrlOpen,
-        setImageUrlOpen,
-        handleCreateImage,
+        handleImageUploadClick,
+        handleUploadImage,
         handleUpdateImage,
         handleDeleteImage,
     } = useBoardImages({
@@ -69,6 +68,7 @@ export default function BoardClient() {
         boardId: currentBoard.boardId,
         boardZoom,
         cardLocationRef,
+        setMessage: setBoardMessage,
     });
 
     const {
@@ -187,7 +187,7 @@ export default function BoardClient() {
         boardHeight,
         boardZoom,
         cardLocationRef,
-        setMessage: setPermissionMessage,
+        setMessage: setBoardMessage,
         memos,
         mermaids,
         tables,
@@ -249,19 +249,6 @@ export default function BoardClient() {
         };
     }, [applySnapshot]);
 
-    // AI 제안이 남아 있는 동안에는 저장하지 않는다. 임시 카드는 음수 ID라서 스키마 검증에
-    // 걸리고, 무엇보다 아직 사용자가 받아들이지 않은 변경을 파일에 쓰면 안 된다.
-    useEffect(() => {
-        if (!databaseReady || isEditing || drawingMode || hasPendingAiCards) return;
-
-        const timeoutId = window.setTimeout(() => {
-            replaceBoardState(snapshot).catch((error: unknown) => {
-                setPermissionMessage(error instanceof Error ? error.message : "The board could not be saved.");
-            });
-        }, 150);
-        return () => window.clearTimeout(timeoutId);
-    }, [databaseReady, drawingMode, hasPendingAiCards, isEditing, snapshot]);
-
     // Export는 내보내기 전에 현재 snapshot을 파일에 쓴다. 편집 중과 마찬가지로 AI 제안이
     // 남아 있는 동안에도 잠근다. 임시 카드는 음수 ID라서 저장 단계에서 검증에 걸린다.
     const exportDisabled = isEditing || drawingMode || hasPendingAiCards;
@@ -269,14 +256,32 @@ export default function BoardClient() {
     const {
         importInputRef,
         transferring,
+        resetting,
+        resetDialogOpen,
         handleExport,
         handleImportClick,
         handleImport,
+        handleResetClick,
+        handleResetCancel,
+        handleResetConfirm,
     } = useBoardTransfer({
         exportDisabled,
-        setMessage: setPermissionMessage,
+        setMessage: setBoardMessage,
         getSnapshot: () => snapshot,
     });
+
+    // AI 제안이 남아 있거나 Reset이 진행 중일 때에는 저장하지 않는다. 임시 카드는 음수 ID라서
+    // 스키마 검증에 걸리고, Reset 중 저장하면 방금 지운 브라우저 DB가 다시 생길 수 있다.
+    useEffect(() => {
+        if (!databaseReady || isEditing || drawingMode || hasPendingAiCards || resetting) return;
+
+        const timeoutId = window.setTimeout(() => {
+            replaceBoardState(snapshot).catch((error: unknown) => {
+                setBoardMessage(error instanceof Error ? error.message : "The board could not be saved.");
+            });
+        }, 150);
+        return () => window.clearTimeout(timeoutId);
+    }, [databaseReady, drawingMode, hasPendingAiCards, isEditing, resetting, snapshot]);
 
     const {
         boardPanning,
@@ -326,8 +331,17 @@ export default function BoardClient() {
         <input
             ref={importInputRef}
             type="file"
+            aria-label="Import board database"
             className="hidden"
             onChange={handleImport}
+        />
+        <input
+            ref={imageInputRef}
+            type="file"
+            accept={imageInputAccept}
+            aria-label="Upload image"
+            className="hidden"
+            onChange={handleUploadImage}
         />
         <BoardMenu
             menuOpen={menuOpen}
@@ -335,9 +349,11 @@ export default function BoardClient() {
             setMenuOpen={setMenuOpen}
             exportDisabled={exportDisabled}
             transferring={transferring}
+            resetting={resetting}
             onExport={handleExport}
             onImport={handleImportClick}
             onCompileMarkdown={() => setMarkdownViewOpen(true)}
+            onReset={handleResetClick}
             onAbout={() => setAboutOpen(true)}
         />
         <BoardToolBar
@@ -351,7 +367,7 @@ export default function BoardClient() {
             setSearchBarOpen={setSearchBarOpen}
             setBoardNavigatorOpen={setBoardNavigatorOpen}
             onMemoCreateClick={handleCreateTempMemo}
-            onImageUploadClick={() => setImageUrlOpen(true)}
+            onImageUploadClick={handleImageUploadClick}
             onMermaidCreateClick={handleCreateTempMermaid}
             onTableCreateClick={handleCreateTempTable}
             onDrawingToggleClick={handleToggleDrawingMode}
@@ -387,14 +403,16 @@ export default function BoardClient() {
                 onMemoNumberChange={focusMemoByOrder}
             />
         )}
-        {imageUrlOpen && (
-            <ImageUrlModal
-                onClose={() => setImageUrlOpen(false)}
-                onSubmit={handleCreateImage}
-            />
-        )}
         {aboutOpen && (
             <AboutModal onClose={() => setAboutOpen(false)} />
+        )}
+        {resetDialogOpen && (
+            <ConfirmDialog
+                title="Reset KyuBoard Lite?"
+                message="Once deleted, your board data cannot be recovered."
+                onConfirm={handleResetConfirm}
+                onCancel={handleResetCancel}
+            />
         )}
         <AiAssistantButton
             aiPanelOpen={aiPanelOpen}
@@ -427,9 +445,9 @@ export default function BoardClient() {
             />
         )}
         <BoardMessage
-            type="permission"
-            message={permissionMessage}
-            onDismiss={() => setPermissionMessage("")}
+            type="board"
+            message={boardMessage}
+            onDismiss={() => setBoardMessage("")}
         />
         <BoardMessage
             type="memo"
@@ -440,7 +458,7 @@ export default function BoardClient() {
          <main
             className="h-screen w-screen select-none bg-neutral-200"
             onClick={()=>{
-                setPermissionMessage("");
+                setBoardMessage("");
                 setMemoMessage("");
             }}
         >
@@ -478,11 +496,9 @@ export default function BoardClient() {
                             key={image.imageId}
                             image={image}
                             zoom={boardZoom}
-                            canEdit={canEditCard}
                             isEditing={editingImageId === image.imageId}
                             onEditing={() => setEditingImageId(image.imageId)}
                             onEditingClear={() => setEditingImageId(null)}
-                            onPermissionDenied={showPermissionMessage}
                             onUpdate={handleUpdateImage}
                             onDelete={handleDeleteImage}
                             onBringToFront={() => handleCardLayer("image", image.imageId, "front")}
@@ -494,14 +510,12 @@ export default function BoardClient() {
                             key={memo.id}
                             memo={memo}
                             zoom={boardZoom}
-                            canEdit={canEditCard}
                             isEditing={editingMemoId === memo.id}
                             isFocused={focusedMemoId === memo.id}
                             onFocus={() => setFocusedMemoId(memo.id)}
                             onFocusClear={() => setFocusedMemoId(null)}
                             onEditing={() => setEditingMemoId(memo.id)}
                             onEditingClear={() => setEditingMemoId(null)}
-                            onPermissionDenied={showPermissionMessage}
                             onInsert={handleInsertMemo}
                             onUpdate={handleUpdateMemo}
                             onDelete={handleDeleteMemo}
@@ -514,11 +528,9 @@ export default function BoardClient() {
                             key={mermaid.id}
                             mermaid={mermaid}
                             zoom={boardZoom}
-                            canEdit={canEditCard}
                             isEditing={editingMermaidId === mermaid.id}
                             onEditing={() => setEditingMermaidId(mermaid.id)}
                             onEditingClear={() => setEditingMermaidId(null)}
-                            onPermissionDenied={showPermissionMessage}
                             onInsert={handleInsertMermaid}
                             onUpdate={handleUpdateMermaid}
                             onDelete={handleDeleteMermaid}
@@ -531,11 +543,9 @@ export default function BoardClient() {
                             key={table.id}
                             table={table}
                             zoom={boardZoom}
-                            canEdit={canEditCard}
                             isEditing={editingTableId === table.id}
                             onEditing={() => setEditingTableId(table.id)}
                             onEditingClear={() => setEditingTableId(null)}
-                            onPermissionDenied={showPermissionMessage}
                             onInsert={handleInsertTable}
                             onUpdate={handleUpdateTable}
                             onDelete={handleDeleteTable}

@@ -20,10 +20,22 @@ describe("browser SQLite board snapshots", () => {
         const snapshot = createEmptyBoardSnapshot();
         snapshot.images.push({
             imageId: 1, boardId: 1, url: "javascript:alert(1)", label: null,
+            data: null, mimeType: null,
             x: 0, y: 0, z: 1, width: 400, height: 300,
         });
 
         expect(() => parseBoardSnapshot(snapshot)).toThrow(/invalid KyuBoard Lite data/i);
+    });
+
+    it("accepts compressed local image bytes", () => {
+        const snapshot = createEmptyBoardSnapshot();
+        snapshot.images.push({
+            imageId: 1, boardId: 1, url: "", data: new Uint8Array([1, 2, 3]),
+            mimeType: "image/webp", label: "photo.webp",
+            x: 0, y: 0, z: 1, width: 400, height: 300,
+        });
+
+        expect(parseBoardSnapshot(snapshot).images[0].data).toEqual(new Uint8Array([1, 2, 3]));
     });
 
     it("allocates positive ids after imported records", () => {

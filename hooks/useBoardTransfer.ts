@@ -4,6 +4,7 @@ import {
     exportBoardDatabase,
     importBoardDatabase,
     replaceBoardState,
+    resetBoardDatabase,
 } from "@/lib/browser-db/client";
 
 type UseBoardTransferOptions = {
@@ -22,9 +23,11 @@ export function useBoardTransfer({
 }: UseBoardTransferOptions) {
     const importInputRef = useRef<HTMLInputElement | null>(null);
     const [transferring, setTransferring] = useState(false);
+    const [resetDialogOpen, setResetDialogOpen] = useState(false);
+    const [resetting, setResetting] = useState(false);
 
     const handleExport = async () => {
-        if (exportDisabled || transferring) return;
+        if (exportDisabled || transferring || resetting) return;
 
         setTransferring(true);
         try {
@@ -47,13 +50,13 @@ export function useBoardTransfer({
     };
 
     const handleImportClick = () => {
-        if (!transferring) importInputRef.current?.click();
+        if (!transferring && !resetting) importInputRef.current?.click();
     };
 
     const handleImport = async (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         event.target.value = "";
-        if (!file) return;
+        if (!file || resetting) return;
 
         if (file.size > 50 * 1024 * 1024) {
             setMessage("The SQLite save file must be 50 MiB or smaller.");
@@ -76,11 +79,37 @@ export function useBoardTransfer({
         }
     };
 
+    const handleResetClick = () => {
+        if (!transferring && !resetting) setResetDialogOpen(true);
+    };
+
+    const handleResetCancel = () => setResetDialogOpen(false);
+
+    const handleResetConfirm = async () => {
+        if (transferring || resetting) return;
+
+        setResetDialogOpen(false);
+        setResetting(true);
+        setMessage("");
+        try {
+            await resetBoardDatabase();
+            window.location.reload();
+        } catch (error) {
+            setMessage(errorMessage(error, "KyuBoard Lite browser data could not be reset."));
+            setResetting(false);
+        }
+    };
+
     return {
         importInputRef,
         transferring,
+        resetting,
+        resetDialogOpen,
         handleExport,
         handleImportClick,
         handleImport,
+        handleResetClick,
+        handleResetCancel,
+        handleResetConfirm,
     };
 }

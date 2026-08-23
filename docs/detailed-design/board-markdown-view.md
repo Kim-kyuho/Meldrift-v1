@@ -8,7 +8,7 @@
 
 - Memo의 TipTap HTML은 Turndown으로 Markdown으로 변환한다.
 - Memo 모서리와 겹치는 최상단 이미지, Mermaid, 표를 문서에 한 번씩 삽입한다.
-- 이미지는 URL Markdown, Mermaid는 fenced code block, 표는 GFM table로 변환한다.
+- 로컬 이미지는 BLOB을 base64 data URL로 바꾼 Markdown, 기존 URL 이미지는 URL Markdown, Mermaid는 fenced code block, 표는 GFM table로 변환한다.
 - Mermaid fenced block은 일반 Markdown과 분리해 `useMermaidRenderer`로 렌더링한다.
 
 ## 렌더와 다운로드
