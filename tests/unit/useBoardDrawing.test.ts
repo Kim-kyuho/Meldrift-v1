@@ -81,14 +81,11 @@ describe("useBoardDrawing", () => {
         expect(result.current.strokes[0].id).toBe("s1");
     });
 
-    it("toggles the pan and erase tools, and they replace each other", () => {
+    it("toggles between the draw and erase tools", () => {
         const { result } = setup();
 
         act(() => result.current.handleToggleDrawingMode());
         expect(result.current.drawingTool).toBe("draw");
-
-        act(() => result.current.handleTogglePanTool());
-        expect(result.current.drawingTool).toBe("pan");
 
         act(() => result.current.handleToggleEraseTool());
         expect(result.current.drawingTool).toBe("erase");
@@ -101,7 +98,7 @@ describe("useBoardDrawing", () => {
         const { result } = setup();
 
         act(() => result.current.handleToggleDrawingMode());
-        act(() => result.current.handleTogglePanTool());
+        act(() => result.current.handleToggleEraseTool());
         await act(async () => result.current.handleToggleDrawingMode());
 
         expect(result.current.drawingTool).toBe("draw");
