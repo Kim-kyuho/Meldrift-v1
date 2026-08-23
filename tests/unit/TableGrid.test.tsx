@@ -32,6 +32,15 @@ function TableHarness({
 }
 
 describe("TableGrid", () => {
+    it("keeps the card surface transparent and only colors the editing toolbar", () => {
+        const { container } = render(<TableHarness />);
+        const grid = container.firstElementChild;
+        const toolbar = grid?.firstElementChild;
+
+        expect(grid).not.toHaveClass("bg-white");
+        expect(toolbar).toHaveClass("bg-white");
+    });
+
     it("keeps cell and column inputs mounted while editing values", () => {
         render(<TableHarness />);
         const columnInput = screen.getAllByLabelText("Column name")[0];

@@ -20,6 +20,7 @@ const existingMemo: BoardMemo = {
 };
 const existingImage: BoardImage = {
     imageId: 1, boardId: defaultBoard.boardId, url: "https://example.com/a.png", label: "a",
+    data: null, mimeType: null,
     x: 10, y: 400, z: 1, width: 400, height: 300,
 };
 
@@ -31,6 +32,7 @@ function useAssistantHarness() {
     });
     const images = useBoardImages({
         initialImages: [existingImage], boardId: defaultBoard.boardId, boardZoom: 1, cardLocationRef: locationRef,
+        setMessage,
     });
     const mermaids = useBoardMermaids({
         initialMermaids: [], boardId: defaultBoard.boardId, boardZoom: 1, cardLocationRef: locationRef,

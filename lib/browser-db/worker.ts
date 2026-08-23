@@ -15,6 +15,7 @@ import {
 import type { BrowserDbRequest, BrowserDbResponse } from "@/lib/browser-db/protocol";
 
 const requiredTables = ["boards", "memos", "images", "mermaids", "drawings", "tables"];
+const browserDatabaseName = "kyuboard-lite";
 const workerScope = self as DedicatedWorkerGlobalScope;
 
 let sqlite3: Sqlite3Static;
@@ -51,7 +52,9 @@ const schemaSql = `
     CREATE TABLE IF NOT EXISTS images (
         image_id INTEGER PRIMARY KEY AUTOINCREMENT,
         board_id INTEGER NOT NULL REFERENCES boards(board_id) ON DELETE CASCADE,
-        url TEXT NOT NULL,
+        url TEXT NOT NULL DEFAULT '',
+        image_data BLOB,
+        mime_type TEXT,
         label TEXT,
         x INTEGER NOT NULL DEFAULT 0,
         y INTEGER NOT NULL DEFAULT 0,
@@ -99,9 +102,27 @@ function exec(db: Database, sql: string, bind: SqlValue[] = []) {
     db.exec({ sql, bind });
 }
 
+function migrateDatabase(db: Database) {
+    const version = Number(db.selectValue("PRAGMA user_version"));
+    if (version === schemaVersion) {
+        db.exec(schemaSql);
+        return;
+    }
+    if (version !== 1) {
+        throw new Error(`Unsupported browser database version: ${version}.`);
+    }
+
+    db.transaction(() => {
+        exec(db, "ALTER TABLE images ADD COLUMN image_data BLOB");
+        exec(db, "ALTER TABLE images ADD COLUMN mime_type TEXT");
+        exec(db, `PRAGMA user_version = ${schemaVersion}`);
+    });
+    db.exec(schemaSql);
+}
+
 function openIndexedDb() {
     return new Promise<IDBDatabase>((resolve, reject) => {
-        const request = indexedDB.open("kyuboard-lite", 1);
+        const request = indexedDB.open(browserDatabaseName, 1);
         request.onupgradeneeded = () => {
             if (!request.result.objectStoreNames.contains("files")) {
                 request.result.createObjectStore("files");
@@ -109,6 +130,14 @@ function openIndexedDb() {
         };
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error ?? new Error("IndexedDB could not be opened."));
+    });
+}
+
+function deleteIndexedDbDatabase() {
+    return new Promise<void>((resolve, reject) => {
+        const request = indexedDB.deleteDatabase(browserDatabaseName);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error ?? new Error("KyuBoard Lite browser data could not be deleted."));
     });
 }
 
@@ -189,6 +218,14 @@ function stringValue(value: SqlValue) {
     return String(value);
 }
 
+function bytesValue(value: SqlValue) {
+    if (!(value instanceof Uint8Array)) {
+        throw new Error("The SQLite file contains invalid image bytes.");
+    }
+
+    return new Uint8Array(value);
+}
+
 function readSnapshot(db: Database): BoardSnapshot {
     const boardRow = db.selectObject(
         "SELECT board_id, title, width, height FROM boards WHERE board_id = ?",
@@ -205,11 +242,17 @@ function readSnapshot(db: Database): BoardSnapshot {
         width: numberValue(row.width), height: numberValue(row.height), color: stringValue(row.color),
     }));
 
+    const imageColumns = new Set(db.selectObjects("PRAGMA table_info(images)").map((row) => String(row.name)));
+    const hasImageBlobColumns = imageColumns.has("image_data") && imageColumns.has("mime_type");
     const images = db.selectObjects(
-        "SELECT image_id, board_id, url, label, x, y, z, width, height FROM images WHERE board_id = ? ORDER BY image_id",
+        hasImageBlobColumns
+            ? "SELECT image_id, board_id, url, image_data, mime_type, label, x, y, z, width, height FROM images WHERE board_id = ? ORDER BY image_id"
+            : "SELECT image_id, board_id, url, label, x, y, z, width, height FROM images WHERE board_id = ? ORDER BY image_id",
         [defaultBoardId],
     ).map((row) => ({
         imageId: numberValue(row.image_id), boardId: numberValue(row.board_id), url: stringValue(row.url),
+        data: !hasImageBlobColumns || row.image_data === null ? null : bytesValue(row.image_data),
+        mimeType: !hasImageBlobColumns || row.mime_type === null ? null : stringValue(row.mime_type),
         label: row.label === null ? null : stringValue(row.label), x: numberValue(row.x), y: numberValue(row.y),
         z: numberValue(row.z), width: numberValue(row.width), height: numberValue(row.height),
     }));
@@ -260,8 +303,11 @@ function replaceSnapshot(db: Database, value: BoardSnapshot) {
             [memo.id, memo.boardId, memo.content, memo.x, memo.y, memo.z, memo.width, memo.height, memo.color],
         ));
         snapshot.images.forEach((image) => exec(db,
-            "INSERT INTO images (image_id, board_id, url, label, x, y, z, width, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [image.imageId, image.boardId, image.url, image.label, image.x, image.y, image.z, image.width, image.height],
+            "INSERT INTO images (image_id, board_id, url, image_data, mime_type, label, x, y, z, width, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [
+                image.imageId, image.boardId, image.url, image.data, image.mimeType, image.label,
+                image.x, image.y, image.z, image.width, image.height,
+            ],
         ));
         snapshot.mermaids.forEach((mermaid) => exec(db,
             "INSERT INTO mermaids (mermaid_id, board_id, source, x, y, z, width, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -283,7 +329,8 @@ async function initialize() {
     database = savedFile
         ? deserializeDatabase(savedFile, true)
         : new sqlite3.oo1.DB(":memory:");
-    database.exec(schemaSql);
+    if (savedFile) migrateDatabase(database);
+    else database.exec(schemaSql);
     exec(database, "INSERT OR IGNORE INTO boards (board_id, title, width, height) VALUES (?, ?, ?, ?)", [
         defaultBoard.boardId, defaultBoard.title, defaultBoard.width, defaultBoard.height,
     ]);
@@ -308,14 +355,16 @@ async function importDatabase(bytes: ArrayBuffer) {
         const integrity = imported.selectValue("PRAGMA integrity_check");
         if (integrity !== "ok") throw new Error("The SQLite save file failed its integrity check.");
 
-        const version = Number(imported.selectValue("PRAGMA user_version"));
-        if (version !== schemaVersion) throw new Error(`Unsupported save file version: ${version}.`);
-
         const tableNames = new Set(imported.selectValues(
             "SELECT name FROM sqlite_master WHERE type = 'table'",
         ).map(String));
         if (requiredTables.some((table) => !tableNames.has(table))) {
             throw new Error("The SQLite file is missing KyuBoard Lite tables.");
+        }
+
+        const version = Number(imported.selectValue("PRAGMA user_version"));
+        if (version !== 1 && version !== schemaVersion) {
+            throw new Error(`Unsupported save file version: ${version}.`);
         }
 
         const boardCount = Number(imported.selectValue("SELECT count(*) FROM boards"));
@@ -361,6 +410,11 @@ async function handleRequest(request: BrowserDbRequest): Promise<BoardDbResult> 
         }
         case "import":
             return importDatabase(request.bytes);
+        case "reset":
+            await deleteIndexedDbDatabase();
+            database.close();
+            initialization = null;
+            return undefined;
     }
 }
 

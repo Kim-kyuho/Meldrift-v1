@@ -2,7 +2,7 @@
 
 ## 제품 범위
 
-KyuBoard Lite는 로그인과 보드 목록이 없는 단일 사용자·단일 보드 앱이다. `/`에서 고정 `board_id = 1`을 바로 열며 서버 데이터베이스나 파일 업로드 기능은 없다.
+KyuBoard Lite는 로그인과 보드 목록이 없는 단일 사용자·단일 보드 앱이다. `/`에서 고정 `board_id = 1`을 바로 열며 서버 데이터베이스나 서버 파일 업로드 기능은 없다.
 
 예외는 AI 어시스턴트 하나다. 모델 호출에는 서버가 필요하므로 `app/api/ai/*`에 라우트가 있고, 로그인이 없는 대신 어시스턴트 자체에 비밀번호가 걸려 있다. 환경변수를 넣지 않으면 어시스턴트는 꺼진 상태가 되고 나머지 기능은 그대로 동작한다. 자세한 내용은 `detailed-design/ai-assistant.md`를 본다.
 
@@ -29,7 +29,7 @@ AI 어시스턴트 라우트는 이 흐름 밖에 있다. 보드 데이터를 �
 | --- | --- |
 | `boards` | 단일 보드 제목과 크기 |
 | `memos` | TipTap HTML, 색상, 위치, 크기, 레이어 |
-| `images` | HTTP(S) URL, 라벨, 위치, 크기, 레이어 |
+| `images` | 압축 이미지 BLOB, MIME 타입, 라벨, 위치, 크기, 레이어; v1 호환 URL |
 | `mermaids` | Mermaid 소스와 카드 geometry |
 | `tables` | `TableSource` JSON과 카드 geometry |
 | `drawings` | 보드별 `BoardStroke[]` JSON |
@@ -42,9 +42,9 @@ AI 어시스턴트 라우트는 이 흐름 밖에 있다. 보드 데이터를 �
 
 카드 훅은 네트워크 요청 없이 React 상태를 갱신한다. `BoardClient`는 카드 편집, 드로잉 모드, 저장하지 않은 AI 제안이 모두 아닐 때 변경된 전체 snapshot을 150ms debounce 후 하나의 SQLite 트랜잭션으로 저장한다. 드로잉 완료 시에도 같은 저장 흐름을 사용한다.
 
-## 이미지 URL
+## 로컬 이미지
 
-이미지 버튼은 URL 입력 모달을 연다. 클라이언트가 원격 이미지의 자연 크기를 읽어 최대 400x300에 맞추며 실패하면 400x300을 사용한다. 지원 프로토콜은 `http:`와 `https:`뿐이다. 세이브 파일에는 URL만 들어가므로 원격 이미지가 사라지거나 핫링크를 막으면 표시되지 않을 수 있다.
+이미지 버튼은 숨겨진 파일 입력을 연다. JPEG, PNG, WebP 원본을 Canvas에서 긴 변 1920px 이하의 WebP로 압축하고, 최대 5 MiB인 결과 바이트를 SQLite BLOB에 저장한다. 카드에서는 Object URL을 잠깐 만들어 표시하며 Export/Import 파일에도 이미지 자체가 포함된다. 기존 schema v1의 HTTP(S) URL 이미지는 v2로 자동 마이그레이션해 계속 읽는다.
 
 ## Export
 
@@ -59,10 +59,16 @@ Export 직전에 현재 snapshot 저장 RPC가 완료될 때까지 기다린 뒤
 3. `PRAGMA user_version`
 4. 필수 테이블과 단일 `board_id = 1`
 5. 모든 행의 타입, ID, geometry 및 보드 참조
-6. 이미지 HTTP(S) URL
+6. 이미지 BLOB 크기와 MIME 타입 또는 v1 호환 HTTP(S) URL
 7. 표와 드로잉 JSON의 Zod schema
 
 가져온 파일은 별도 임시 SQLite 메모리 DB로 열기 때문에 검증 실패 시 현재 상태가 유지된다. 검증된 snapshot만 현재 DB의 단일 트랜잭션으로 교체하고 serialize된 전체 SQLite 파일을 IndexedDB에 원자적으로 저장한다.
+
+## Reset
+
+오른쪽 위 메뉴의 Reset은 확인 모달을 거친 뒤 현재 origin의 KyuBoard Lite 전용 IndexedDB 데이터베이스 `kyuboard-lite`를 삭제한다. 메모, 이미지 BLOB, Mermaid, 표, 드로잉을 담은 SQLite 파일 전체가 영구 삭제되고 페이지를 다시 열어 빈 기본 DB를 만든다. Reset 중에는 자동 저장과 Export/Import를 멈춰 삭제 직후 이전 snapshot이 다시 저장되지 않게 한다.
+
+삭제 범위는 정확히 `kyuboard-lite` 하나다. 같은 origin의 다른 IndexedDB 데이터베이스, Cache Storage, localStorage, sessionStorage, 쿠키는 일괄 삭제하지 않는다. 삭제 자체가 실패하면 페이지를 새로고침하거나 더 넓은 저장소를 지우지 않고 오류를 표시해 기존 데이터를 유지한다.
 
 ## 배포 및 보존 범위
 

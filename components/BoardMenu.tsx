@@ -2,7 +2,7 @@
 
 import PressableButton from "./PressableButton";
 import { Dispatch, SetStateAction } from "react";
-import { Download, EllipsisIcon, FileText, FolderOpen, Info } from "lucide-react";
+import { Download, EllipsisIcon, FileText, FolderOpen, Info, Shredder } from "lucide-react";
 import Link from "next/link";
 
 type BoardMenuProps = {
@@ -11,9 +11,11 @@ type BoardMenuProps = {
     setMenuOpen: Dispatch<SetStateAction<boolean>>;
     exportDisabled: boolean;
     transferring: boolean;
+    resetting: boolean;
     onExport: () => void;
     onImport: () => void;
     onCompileMarkdown: () => void;
+    onReset: () => void;
     onAbout: () => void;
 };
 
@@ -23,9 +25,11 @@ export default function BoardMenu({
     setMenuOpen,
     exportDisabled,
     transferring,
+    resetting,
     onExport,
     onImport,
     onCompileMarkdown,
+    onReset,
     onAbout,
 }: BoardMenuProps) {
     const runAndClose = (action: () => void) => {
@@ -60,7 +64,7 @@ export default function BoardMenu({
                     <div className="px-3 py-2 font-bold text-neutral-900">{currentBoard.title}</div>
                     <PressableButton
                         variant="menu"
-                        disabled={exportDisabled || transferring}
+                        disabled={exportDisabled || transferring || resetting}
                         title={exportDisabled ? "Finish the current card, drawing, or assistant changes before exporting." : "Export SQLite save file"}
                         className="flex items-center gap-2 font-bold text-sky-600 disabled:cursor-not-allowed disabled:opacity-35"
                         onClick={() => runAndClose(onExport)}
@@ -70,7 +74,7 @@ export default function BoardMenu({
                     </PressableButton>
                     <PressableButton
                         variant="menu"
-                        disabled={transferring}
+                        disabled={transferring || resetting}
                         className="flex items-center gap-2 font-bold text-indigo-600 disabled:cursor-not-allowed disabled:opacity-35"
                         onClick={() => runAndClose(onImport)}
                     >
@@ -84,6 +88,16 @@ export default function BoardMenu({
                     >
                         <FileText aria-hidden="true" className="h-4 w-4 shrink-0" />
                         Compile to Markdown
+                    </PressableButton>
+                    <PressableButton
+                        variant="menu"
+                        disabled={transferring || resetting}
+                        title="Delete this browser's KyuBoard Lite SQLite data"
+                        className="flex items-center gap-2 font-bold text-rose-600 disabled:cursor-not-allowed disabled:opacity-35"
+                        onClick={() => runAndClose(onReset)}
+                    >
+                        <Shredder aria-hidden="true" className="h-4 w-4 shrink-0" />
+                        {resetting ? "Resetting..." : "Reset"}
                     </PressableButton>
                     {exportDisabled && (
                         <p className="px-3 pt-2 text-xs font-semibold text-neutral-500">

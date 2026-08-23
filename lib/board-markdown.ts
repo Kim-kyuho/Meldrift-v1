@@ -1,5 +1,6 @@
 import TurndownService from "turndown";
 import type { BoardSnapshot } from "@/lib/board-state";
+import { imageBytesToDataUrl } from "@/lib/image-file";
 import { tableSourceToMarkdown } from "@/lib/table-card";
 
 type BoardCard = {
@@ -41,7 +42,12 @@ function renderCard(card: BoardCard) {
 export function compileBoardMarkdown(snapshot: BoardSnapshot) {
     const cards: BoardCard[] = [
         ...snapshot.images.map((image) => ({
-            type: "image" as const, id: image.imageId, content: image.url, label: image.label,
+            type: "image" as const,
+            id: image.imageId,
+            content: image.data && image.mimeType
+                ? imageBytesToDataUrl(image.data, image.mimeType)
+                : image.url,
+            label: image.label,
             x: image.x, y: image.y, z: image.z, width: image.width, height: image.height,
         })),
         ...snapshot.mermaids.map((mermaid) => ({

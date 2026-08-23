@@ -4,7 +4,8 @@ export type BrowserDbPayload =
     | { type: "load" }
     | { type: "replace"; snapshot: BoardSnapshot }
     | { type: "export" }
-    | { type: "import"; bytes: ArrayBuffer };
+    | { type: "import"; bytes: ArrayBuffer }
+    | { type: "reset" };
 
 export type BrowserDbRequest = BrowserDbPayload & { id: number };
 

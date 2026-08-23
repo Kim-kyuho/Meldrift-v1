@@ -21,7 +21,7 @@ export const planTableSchema = z.object({
     rows: z.array(z.array(z.string())).min(1).max(20),
 });
 
-// Lite에는 그림 생성이 없다. 이미지 카드는 사용자가 URL을 직접 넣어 만드는 것만 존재하므로
+// Lite의 AI는 그림을 생성하지 않는다. 사용자가 고른 로컬 이미지만 BLOB으로 저장하므로
 // 어시스턴트가 붙일 수 있는 첨부는 Mermaid와 표뿐이다.
 export const planAttachmentSchema = z.discriminatedUnion("type", [
     z.object({ type: z.literal("mermaid"), source: z.string().min(1) }),

@@ -8,6 +8,7 @@ type PendingRequest = {
 
 let worker: Worker | null = null;
 let nextRequestId = 1;
+let resetInProgress = false;
 const pendingRequests = new Map<number, PendingRequest>();
 
 function rejectAll(error: Error) {
@@ -56,10 +57,23 @@ function request<T>(payload: BrowserDbPayload, transfer: Transferable[] = []) {
 
 export const loadBoardState = () => request<BoardSnapshot>({ type: "load" });
 
-export const replaceBoardState = (snapshot: BoardSnapshot) =>
-    request<void>({ type: "replace", snapshot });
+export const replaceBoardState = (snapshot: BoardSnapshot) => {
+    if (resetInProgress) return Promise.resolve();
+    return request<void>({ type: "replace", snapshot });
+};
 
 export const exportBoardDatabase = () => request<ArrayBuffer>({ type: "export" });
 
 export const importBoardDatabase = (bytes: ArrayBuffer) =>
     request<BoardSnapshot>({ type: "import", bytes }, [bytes]);
+
+export const resetBoardDatabase = async () => {
+    if (resetInProgress) return;
+    resetInProgress = true;
+    try {
+        await request<void>({ type: "reset" });
+    } catch (error) {
+        resetInProgress = false;
+        throw error;
+    }
+};

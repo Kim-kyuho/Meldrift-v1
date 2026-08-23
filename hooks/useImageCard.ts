@@ -12,6 +12,8 @@ export interface ImageCardData {
     imageId: number;
     boardId: number;
     url: string;
+    data: Uint8Array | null;
+    mimeType: string | null;
     label: string | null;
     x: number;
     y: number;
@@ -30,8 +32,6 @@ type UseImageCardOptions = {
     onUpdate: (
         imageId: number,
         boardId: number,
-        url: string,
-        label: string | null,
         x: number,
         y: number,
         z: number,
@@ -68,8 +68,6 @@ export function useImageCard({
         onUpdate(
             image.imageId,
             image.boardId,
-            image.url,
-            image.label,
             Math.round(latestImageState.x),
             Math.round(latestImageState.y),
             image.z,
@@ -79,8 +77,6 @@ export function useImageCard({
     }, [
         image.boardId,
         image.imageId,
-        image.label,
-        image.url,
         image.z,
         onUpdate,
     ]);

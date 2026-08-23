@@ -2,12 +2,13 @@ import PressableButton from "@/components/PressableButton";
 import { createPortal } from "react-dom";
 
 type ConfirmDialogProps = {
+    title?: string;
     message: string;
     onConfirm: () => void;
     onCancel: () => void;
 };
 
-export default function ConfirmDialog({ message, onConfirm, onCancel }: ConfirmDialogProps) {
+export default function ConfirmDialog({ title, message, onConfirm, onCancel }: ConfirmDialogProps) {
     return createPortal(
         <>
             <div
@@ -30,7 +31,10 @@ export default function ConfirmDialog({ message, onConfirm, onCancel }: ConfirmD
                 }}
             >
                 <div className="bg-white rounded-lg p-6 w-80 text-neutral-900">
-                    <p className="mb-4 text-sm font-semibold">{message}</p>
+                    {title && <h2 className="text-lg font-bold">{title}</h2>}
+                    <p className={`mb-4 text-sm ${title ? "mt-2 text-neutral-600" : "font-semibold"}`}>
+                        {message}
+                    </p>
                     <div className="flex justify-end gap-2">
                         <PressableButton variant="menu" onClick={onConfirm}>
                             Yes

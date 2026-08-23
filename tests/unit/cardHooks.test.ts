@@ -20,6 +20,7 @@ const memo: MemoCardData = {
 };
 const image: ImageCardData = {
     imageId: 2, boardId: 5, url: "https://example.com/image.png", label: "image.png",
+    data: null, mimeType: null,
     x: 10, y: 20, z: 4, width: 400, height: 300,
 };
 const mermaid: MermaidCardData = {
@@ -97,11 +98,11 @@ describe("card hooks", () => {
             act(() => result.current.handleDragStop({} as never, { x: 50.6, y: 60.4 } as never));
             act(() => dispatchBoardPress("pointerup"));
             act(() => vi.runAllTimers());
-            expect(onUpdate).toHaveBeenCalledWith(2, 5, "https://example.com/image.png", "image.png", 51, 60, 4, 400, 300);
+            expect(onUpdate).toHaveBeenCalledWith(2, 5, 51, 60, 4, 400, 300);
             expect(onEditingClear).toHaveBeenCalledOnce();
         });
 
-        it("deletes a URL image by id", () => {
+        it("deletes an image by id", () => {
             const onDelete = vi.fn();
             const { result } = renderHook(() => useImageCard({
                 image, canEdit: true, isEditing: true, onEditing: vi.fn(), onEditingClear: vi.fn(),

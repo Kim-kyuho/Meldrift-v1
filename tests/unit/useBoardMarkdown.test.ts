@@ -32,6 +32,7 @@ describe("useBoardMarkdown", () => {
         snapshot.mermaids = [];
         snapshot.images = [{
             imageId: 1, boardId: 1, url: "https://example.com/a.png", label: "A",
+            data: null, mimeType: null,
             x: 0, y: 0, z: 2, width: 50, height: 50,
         }];
         const fetchMock = vi.fn();
@@ -40,6 +41,19 @@ describe("useBoardMarkdown", () => {
         expect(result.current.markdown).toContain("![A](https://example.com/a.png)");
         expect(fetchMock).not.toHaveBeenCalled();
         vi.unstubAllGlobals();
+    });
+
+    it("embeds local image bytes in the Markdown file", () => {
+        const snapshot = markdownSnapshot();
+        snapshot.mermaids = [];
+        snapshot.images = [{
+            imageId: 1, boardId: 1, url: "", data: new Uint8Array([1, 2, 3]),
+            mimeType: "image/webp", label: "Local",
+            x: 0, y: 0, z: 2, width: 50, height: 50,
+        }];
+
+        const { result } = renderHook(() => useBoardMarkdown(snapshot));
+        expect(result.current.markdown).toContain("![Local](data:image/webp;base64,AQID)");
     });
 
     it("downloads the generated markdown and revokes the object URL", () => {

@@ -5,6 +5,12 @@ import { useBoardImages, type BoardImage } from "@/hooks/useBoardImages";
 import { useBoardMemos, type BoardMemo } from "@/hooks/useBoardMemos";
 import { useBoardMermaids, type BoardMermaid } from "@/hooks/useBoardMermaids";
 import { useBoardTables, type BoardTable } from "@/hooks/useBoardTables";
+import { prepareImageFile } from "@/lib/image-file";
+
+vi.mock("@/lib/image-file", async (importOriginal) => ({
+    ...await importOriginal<typeof import("@/lib/image-file")>(),
+    prepareImageFile: vi.fn(),
+}));
 
 const locationRef = createRef<HTMLDivElement>();
 
@@ -25,6 +31,7 @@ const memo: BoardMemo = {
 };
 const image: BoardImage = {
     imageId: 2, boardId: 5, url: "https://example.com/image.png", label: "image.png",
+    data: null, mimeType: null,
     x: 10, y: 20, z: 2, width: 400, height: 300,
 };
 const mermaid: BoardMermaid = {
@@ -41,6 +48,13 @@ describe("board card collection hooks", () => {
     beforeEach(() => {
         setLocation();
         vi.spyOn(Date, "now").mockReturnValue(1000);
+        vi.mocked(prepareImageFile).mockResolvedValue({
+            data: new Uint8Array([1, 2, 3]),
+            mimeType: "image/webp",
+            label: "image.png",
+            width: 400,
+            height: 300,
+        });
     });
 
     afterEach(() => vi.unstubAllGlobals());
@@ -76,41 +90,45 @@ describe("board card collection hooks", () => {
         expect(tables.result.current.tables[1]).toMatchObject({ id: -1000, x: 120, y: 70 });
     });
 
-    it("creates an image card from a URL and uses the remote aspect ratio", async () => {
-        class MockImage {
-            naturalWidth = 800;
-            naturalHeight = 600;
-            onload: (() => void) | null = null;
-            onerror: (() => void) | null = null;
-            set src(_value: string) {
-                queueMicrotask(() => this.onload?.());
-            }
-        }
-        vi.stubGlobal("Image", MockImage);
+    it("creates an image card from compressed local bytes", async () => {
+        const setMessage = vi.fn();
         const { result } = renderHook(() => useBoardImages({
             initialImages: [], boardId: 5, boardZoom: 2,
             cardLocationRef: locationRef,
+            setMessage,
         }));
 
-        let created = false;
         await act(async () => {
-            created = await result.current.handleCreateImage(image.url, "image.png");
+            await result.current.handleUploadImage({
+                target: {
+                    files: [new File(["image"], "image.png", { type: "image/png" })],
+                    value: "image.png",
+                },
+            } as never);
         });
-        expect(created).toBe(true);
         expect(result.current.images).toEqual([{
-            ...image, imageId: 1, x: 200, y: 100, z: 1,
+            ...image,
+            imageId: 1,
+            url: "",
+            data: new Uint8Array([1, 2, 3]),
+            mimeType: "image/webp",
+            x: 200,
+            y: 100,
+            z: 1,
         }]);
         expect(result.current.editingImageId).toBe(1);
+        expect(setMessage).toHaveBeenCalledWith("");
     });
 
-    it("updates and deletes a persisted URL image", async () => {
+    it("updates geometry and deletes a persisted image", async () => {
         const { result } = renderHook(() => useBoardImages({
             initialImages: [image], boardId: 5, boardZoom: 2,
             cardLocationRef: locationRef,
+            setMessage: vi.fn(),
         }));
 
-        await act(async () => result.current.handleUpdateImage(2, 5, "https://example.com/new.png", "new", 1, 2, 3, 4, 5));
-        expect(result.current.images[0]).toMatchObject({ url: "https://example.com/new.png", label: "new", z: 3 });
+        await act(async () => result.current.handleUpdateImage(2, 5, 1, 2, 3, 4, 5));
+        expect(result.current.images[0]).toMatchObject({ url: image.url, label: image.label, z: 3 });
         await act(async () => result.current.handleDeleteImage(2));
         expect(result.current.images).toEqual([]);
     });
