@@ -3,11 +3,11 @@
 import PressableButton from "./PressableButton";
 import { Dispatch, SetStateAction } from "react";
 import { Download, EllipsisIcon, FileText, FolderOpen, Info, Shredder } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 type BoardMenuProps = {
     menuOpen: boolean;
-    currentBoard: { title: string };
     setMenuOpen: Dispatch<SetStateAction<boolean>>;
     exportDisabled: boolean;
     transferring: boolean;
@@ -21,7 +21,6 @@ type BoardMenuProps = {
 
 export default function BoardMenu({
     menuOpen,
-    currentBoard,
     setMenuOpen,
     exportDisabled,
     transferring,
@@ -39,16 +38,29 @@ export default function BoardMenu({
 
     return (
         <>
-            <div className="fixed left-5 top-5 z-50000 rounded-xl bg-white/75 px-4 py-3 text-neutral-900 shadow-md">
+            <div className="fixed left-5 top-5 z-50000 rounded-xl bg-white/75 px-[9px] py-1.5 shadow-md">
                 <Link
                     href="/"
-                    className="font-mono text-1xl font-extrabold text-sky-500 transition duration-300 hover:text-pink-500 active:scale-105 active:rotate-1 sm:text-1xl"
+                    aria-label="Meldrift home"
+                    className="flex items-center gap-1.5 transition duration-300 hover:opacity-75 active:scale-[0.98]"
                     style={{ WebkitTouchCallout: "none", WebkitUserSelect: "none", userSelect: "none" }}
                 >
-                    •kyu.board
-                    <sup className="ml-1 font-sans text-[0.6rem] font-semibold tracking-wide text-neutral-400">
-                        lite
-                    </sup>
+                    <Image
+                        src="/meldrift-mascot.png"
+                        alt=""
+                        width={256}
+                        height={256}
+                        priority
+                        className="h-[27px] w-[27px] shrink-0"
+                    />
+                    <Image
+                        src="/meldrift-wordmark.png"
+                        alt="meldrift"
+                        width={512}
+                        height={127}
+                        priority
+                        className="h-auto w-[84px] sm:w-24"
+                    />
                 </Link>
             </div>
             <PressableButton
@@ -61,7 +73,7 @@ export default function BoardMenu({
             {menuOpen && (
                 // AI 어시스턴트 버튼이 위로 올라오는 것을 방지하기 위해 z를 한 단계 올림
                 <div className="fixed right-5 top-17 z-50001 w-56 rounded-xl bg-white/75 px-2 py-3 shadow-md">
-                    <div className="px-3 py-2 font-bold text-neutral-900">{currentBoard.title}</div>
+                    <div className="px-3 py-2 font-bold text-neutral-900">Free Edition</div>
                     <PressableButton
                         variant="menu"
                         disabled={exportDisabled || transferring || resetting}

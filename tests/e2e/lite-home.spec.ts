@@ -20,9 +20,13 @@ test.describe("KyuBoard Lite home", () => {
     test("opens the single board directly without authentication controls", async ({ page }) => {
         await expect(page).toHaveTitle(/KyuBoard Lite/i);
         await expect(page.locator(".board-scroll-layer")).toBeVisible();
-        await expect(page.getByRole("link", { name: /•kyu\.board\s*lite/ })).toBeVisible();
+        const wordmark = page.getByRole("link", { name: "Meldrift home" });
+        await expect(wordmark).toBeVisible();
+        await expect(wordmark.locator('img[alt=""]')).toBeVisible();
+        await expect(wordmark.getByAltText("meldrift")).toBeVisible();
 
         await getBoardMenuButton(page).click();
+        await expect(page.getByText("Free Edition", { exact: true })).toBeVisible();
         await expect(page.getByRole("button", { name: "Export" })).toBeVisible();
         await expect(page.getByRole("button", { name: "Import" })).toBeVisible();
         await expect(page.getByRole("button", { name: "Compile to Markdown" })).toBeVisible();

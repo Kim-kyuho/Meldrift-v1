@@ -344,7 +344,6 @@ export default function BoardClient() {
         />
         <BoardMenu
             menuOpen={menuOpen}
-            currentBoard={currentBoard}
             setMenuOpen={setMenuOpen}
             exportDisabled={exportDisabled}
             transferring={transferring}
