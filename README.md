@@ -1,18 +1,36 @@
-# KyuBoard Lite
+# Meldrift Free Edition
 
-KyuBoard Lite is a single-board workspace for rich-text memos, local images, Mermaid diagrams, tables, and freehand drawings.
+Meldrift Free Edition is the local, single-board edition of Meldrift, a personal project for organizing ideas on a visual board.
 
-## Lite edition
+## Concept
 
-- Opens the board directly at `/`; there is no board list or authentication.
-- Runs a real SQLite database with SQLite WASM and persists its file bytes in browser IndexedDB.
-- Runs SQLite in a Web Worker, so editing does not block the UI.
-- Compresses local JPEG, PNG, and WebP files in the browser and stores the image bytes inside SQLite.
-- Exports and imports portable, real SQLite database files from the board menu.
-- Resets the board only after confirmation by deleting the KyuBoard Lite IndexedDB database, without clearing unrelated browser storage.
-- Disables Export while a card, a drawing, or an assistant proposal is unfinished.
-- Includes an optional AI assistant, protected by its own password because there is no sign-in.
-- Does not require a database server, writable Vercel filesystem, or Docker. Only the assistant needs environment variables.
+Ideas do not always begin in a clear order. Meldrift allows memos, images, tables, diagrams, and drawings to be placed freely before their contents are organized into a Markdown document.
+
+![Meldrift screenshot 1](screenshot/IMG_1143.jpeg)
+![Meldrift screenshot 2](screenshot/IMG_1144.jpeg)
+
+## Features
+
+- Open a single board directly without an account or board list.
+- Write rich-text memo cards.
+- Add local image, Mermaid, and table cards.
+- Move, resize, and change the layer order of cards.
+- Draw on the board with a mouse, touch input, or Apple Pencil.
+- Search memos and navigate through them in order.
+- Zoom and pan across the board.
+- Compile board contents into Markdown, preview the result, and download it as an `.md` file.
+- Store the board and compressed image data in a browser-local SQLite file.
+- Export and import the complete board as a portable `meldrift-free.sqlite` file.
+- Use an optional AI assistant to create, edit, delete, and arrange cards after reviewing its proposed changes.
+- Reset only Meldrift Free Edition data without clearing unrelated browser storage.
+
+## Free Edition
+
+This edition does not use sign-in, a board list, a server database, or cloud file storage. The board opens immediately and its SQLite file is stored in the current browser profile and site origin through IndexedDB.
+
+Data is not synchronized across browsers, devices, localhost, or deployed domains. Export the board before clearing site data or moving to another environment, then use Import to restore it.
+
+The multi-board edition is available in the [Meldrift Plus repository](https://github.com/Kim-kyuho/Meldrift-plus).
 
 ## Run locally
 
@@ -25,27 +43,17 @@ npm run dev
 
 Open `http://localhost:3000`. The browser creates its private SQLite database on first use.
 
-## Browser storage
-
-Data belongs to the current browser profile and site origin. It is not synchronized across devices or between localhost and a deployed domain. Reset deletes only KyuBoard Lite's `kyuboard-lite` IndexedDB database after confirmation; it does not clear unrelated databases, caches, local storage, or cookies. Clearing all site data also removes the working SQLite file, so Export should be used for backups and transfers.
-
-Private browsing modes or browser storage policies may prevent persistent storage.
-
 ## AI assistant
 
-The assistant turns a request into memo, table, and Mermaid cards, and can also rearrange, edit, or delete the cards already on the board. Nothing reaches the SQLite file until Save to board is pressed; Discard restores the board exactly as it was.
+The optional assistant can create memo, table, and Mermaid cards and propose changes to cards already on the board. Nothing is saved until the proposal is accepted. It does not generate images; image cards use files selected from the local device.
 
-It is off unless two server environment variables are set. Both stay on the server and are never sent to the browser.
+The assistant remains disabled unless both server environment variables are configured:
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `AI_API_KEY` | yes | Google Gemini API key |
 | `AI_PASSWORD` | yes | Password that unlocks the assistant |
-| `GEMINI_MODEL` | no | Pins the chat model; the built-in list stays as fallback |
-
-Because KyuBoard Lite has no sign-in, the assistant asks for `AI_PASSWORD` before it opens. The check happens on the server, which then sets an `HttpOnly` session cookie, so the password is typed once and not again until the browser closes. Every assistant request re-verifies that cookie — the API cost belongs to whoever owns the key, so a client-side flag would not be enough. Repeated wrong guesses are rate limited, and changing `AI_PASSWORD` invalidates every cookie already issued.
-
-The assistant does not generate images. Image cards are reserved for files the user selects locally, keeping image generation cost and storage growth explicit.
+| `GEMINI_MODEL` | no | Pins the chat model; the built-in list remains as fallback |
 
 For local development, copy the example file and fill it in:
 
@@ -55,7 +63,7 @@ cp .env.example .env.local
 
 ## Deploy to Vercel
 
-Use the Next.js framework preset and the repository root as the Root Directory. No database or storage environment variable is needed; add `AI_API_KEY` and `AI_PASSWORD` in the project settings only if you want the assistant.
+Use the Next.js framework preset and the repository root as the Root Directory. No database or storage environment variable is required. Add `AI_API_KEY` and `AI_PASSWORD` only when enabling the assistant.
 
 ```bash
 vercel --prod
@@ -69,3 +77,5 @@ npm run lint
 npm run build
 npm run test:e2e
 ```
+
+Meldrift Free Edition is currently under development.

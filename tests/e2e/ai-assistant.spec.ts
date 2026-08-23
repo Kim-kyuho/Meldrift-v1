@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { aiTestPassword, gotoHydratedPage } from "./helpers";
 
-// 어시스턴트는 Lite의 유일한 서버 기능이고, 잠금이 곧 비용 통제다.
+// 어시스턴트는 Free Edition의 유일한 서버 기능이고, 잠금이 곧 비용 통제다.
 // 여기서 검사하는 것은 "비밀번호 없이는 못 들어간다"와 "한 번 풀면 다시 묻지 않는다"다.
 // 실제 모델 호출은 하지 않는다. 더미 키로는 어차피 실패하고, 진짜 키를 CI에 두지 않는다.
 
@@ -48,7 +48,7 @@ test.describe("AI assistant lock", () => {
         await expect(page.getByText("How can I help?")).toBeVisible();
 
         // 잠금 쿠키는 HttpOnly여야 한다. 스크립트가 읽을 수 있으면 유출 경로가 된다.
-        expect(await page.evaluate(() => document.cookie)).not.toContain("kyuboard_ai");
+        expect(await page.evaluate(() => document.cookie)).not.toContain("meldrift_ai");
 
         // 새로고침해도 다시 묻지 않는다. 쿠키를 브라우저가 알아서 실어 보내기 때문이다.
         await gotoHydratedPage(page, "/");

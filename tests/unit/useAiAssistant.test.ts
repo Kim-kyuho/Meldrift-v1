@@ -9,7 +9,7 @@ import { useBoardTables } from "@/hooks/useBoardTables";
 import { defaultBoard, type BoardImage, type BoardMemo } from "@/lib/board-state";
 
 // 어시스턴트가 제안한 카드는 임시 ID(음수)로 올라가고, BoardClient의 자동 저장은 제안이
-// 남아 있는 동안 멈춘다. 그 동안 파일에 아무것도 쓰이지 않는다는 것이 Lite 고유의 계약이라
+// 남아 있는 동안 멈춘다. 그 동안 파일에 아무것도 쓰이지 않는다는 것이 Free Edition 고유의 계약이라
 // pending이 언제 서고 언제 풀리는지를 여기서 고정한다.
 
 const locationRef = createRef<HTMLDivElement>();

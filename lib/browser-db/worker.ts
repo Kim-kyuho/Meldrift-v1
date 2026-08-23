@@ -15,6 +15,7 @@ import {
 import type { BrowserDbRequest, BrowserDbResponse } from "@/lib/browser-db/protocol";
 
 const requiredTables = ["boards", "memos", "images", "mermaids", "drawings", "tables"];
+// Keep the pre-rebrand storage key so existing local boards remain accessible.
 const browserDatabaseName = "kyuboard-lite";
 const workerScope = self as DedicatedWorkerGlobalScope;
 
@@ -137,7 +138,7 @@ function deleteIndexedDbDatabase() {
     return new Promise<void>((resolve, reject) => {
         const request = indexedDB.deleteDatabase(browserDatabaseName);
         request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error ?? new Error("KyuBoard Lite browser data could not be deleted."));
+        request.onerror = () => reject(request.error ?? new Error("Meldrift Free Edition browser data could not be deleted."));
     });
 }
 
@@ -359,7 +360,7 @@ async function importDatabase(bytes: ArrayBuffer) {
             "SELECT name FROM sqlite_master WHERE type = 'table'",
         ).map(String));
         if (requiredTables.some((table) => !tableNames.has(table))) {
-            throw new Error("The SQLite file is missing KyuBoard Lite tables.");
+            throw new Error("The SQLite file is missing Meldrift Free Edition tables.");
         }
 
         const version = Number(imported.selectValue("PRAGMA user_version"));
@@ -373,7 +374,7 @@ async function importDatabase(bytes: ArrayBuffer) {
             [defaultBoardId],
         ));
         if (boardCount !== 1 || defaultBoardCount !== 1) {
-            throw new Error("A save file must contain exactly one KyuBoard Lite board.");
+            throw new Error("A save file must contain exactly one Meldrift Free Edition board.");
         }
 
         for (const table of ["memos", "images", "mermaids", "drawings", "tables"]) {

@@ -405,7 +405,7 @@ export default function BoardClient() {
         )}
         {resetDialogOpen && (
             <ConfirmDialog
-                title="Reset KyuBoard Lite?"
+                title="Reset Meldrift Free Edition?"
                 message="Once deleted, your board data cannot be recovered."
                 onConfirm={handleResetConfirm}
                 onCancel={handleResetCancel}
@@ -474,7 +474,7 @@ export default function BoardClient() {
                 }}
             >
                 <div
-                    className="kyu-board relative bg-white"
+                    className="meldrift-board relative bg-white"
                     style={{
                             width: `${boardWidth}px`,
                             height: `${boardHeight}px`,

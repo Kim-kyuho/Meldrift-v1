@@ -12,13 +12,13 @@ const onePixelPng = Buffer.from(
     "base64",
 );
 
-test.describe("KyuBoard Lite home", () => {
+test.describe("Meldrift Free Edition home", () => {
     test.beforeEach(async ({ page }) => {
         await gotoHydratedPage(page, "/");
     });
 
     test("opens the single board directly without authentication controls", async ({ page }) => {
-        await expect(page).toHaveTitle(/KyuBoard Lite/i);
+        await expect(page).toHaveTitle(/Meldrift Free Edition/i);
         await expect(page.locator(".board-scroll-layer")).toBeVisible();
         const wordmark = page.getByRole("link", { name: "Meldrift home" });
         await expect(wordmark).toBeVisible();
@@ -48,7 +48,7 @@ test.describe("KyuBoard Lite home", () => {
 
         const imageCard = page.locator('[class*="image-rnd-"]').filter({ has: page.locator("img") }).first();
         await expect(imageCard).toBeVisible();
-        await page.locator(".kyu-board").click({ position: { x: 20, y: 20 } });
+        await page.locator(".meldrift-board").click({ position: { x: 20, y: 20 } });
         await expect(imageCard).toHaveAttribute("data-editing", "false");
         await expect.poll(
             () => boardDatabaseContainsText(page, "local.png"),
@@ -65,7 +65,7 @@ test.describe("KyuBoard Lite home", () => {
         await page.getByRole("button", { name: "Export" }).click();
         const download = await downloadPromise;
 
-        expect(download.suggestedFilename()).toBe("kyuboard-lite.sqlite");
+        expect(download.suggestedFilename()).toBe("meldrift-free.sqlite");
         const savePath = await download.path();
         expect(savePath).not.toBeNull();
         const bytes = await readFile(savePath!);
@@ -99,12 +99,12 @@ test.describe("KyuBoard Lite home", () => {
 
         const imageCard = page.locator('[class*="image-rnd-"]').filter({ has: page.locator("img") }).first();
         await expect(imageCard).toBeVisible();
-        await page.locator(".kyu-board").click({ position: { x: 20, y: 20 } });
+        await page.locator(".meldrift-board").click({ position: { x: 20, y: 20 } });
         await expect(imageCard).toHaveAttribute("data-editing", "false");
 
         await getBoardMenuButton(page).click();
         await page.getByRole("button", { name: "Reset" }).click();
-        await expect(page.getByRole("heading", { name: "Reset KyuBoard Lite?" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "Reset Meldrift Free Edition?" })).toBeVisible();
         await expect(page.getByText("Once deleted, your board data cannot be recovered.")).toBeVisible();
         await page.getByRole("button", { name: "No" }).click();
         await expect(imageCard).toBeVisible();

@@ -36,7 +36,7 @@ Export는 먼저 현재 snapshot 저장을 기다린 후 SQLite 파일을 내보
 
 ## Reset
 
-`useBoardTransfer`는 Reset 확인 상태와 진행 상태를 소유한다. 확인 후 Worker의 작업 큐에서 KyuBoard Lite 전용 IndexedDB 데이터베이스 `kyuboard-lite`를 삭제하고 메모리 SQLite를 닫은 다음 페이지를 새로고침한다. 진행 중에는 자동 저장과 다른 파일 전송을 중지한다. 다른 origin 저장소나 쿠키를 삭제하는 브라우저 전역 API는 호출하지 않는다.
+`useBoardTransfer`는 Reset 확인 상태와 진행 상태를 소유한다. 확인 후 Worker의 작업 큐에서 Meldrift Free Edition 전용 IndexedDB 데이터베이스를 삭제하고 메모리 SQLite를 닫은 다음 페이지를 새로고침한다. 진행 중에는 자동 저장과 다른 파일 전송을 중지한다. 다른 origin 저장소나 쿠키를 삭제하는 브라우저 전역 API는 호출하지 않는다.
 
 ## 메모 네비게이터
 

@@ -32,7 +32,7 @@ describe("useBoardTransfer Reset", () => {
 
     it("keeps the current page alive and reports an exact reset failure", async () => {
         const setMessage = vi.fn();
-        resetBoardDatabaseMock.mockRejectedValueOnce(new Error("KyuBoard storage is busy."));
+        resetBoardDatabaseMock.mockRejectedValueOnce(new Error("Meldrift storage is busy."));
         const { result } = renderHook(() => useBoardTransfer({
             exportDisabled: false,
             setMessage,
@@ -45,10 +45,10 @@ describe("useBoardTransfer Reset", () => {
         expect(resetBoardDatabaseMock).toHaveBeenCalledOnce();
         expect(result.current.resetDialogOpen).toBe(false);
         expect(result.current.resetting).toBe(false);
-        expect(setMessage).toHaveBeenLastCalledWith("KyuBoard storage is busy.");
+        expect(setMessage).toHaveBeenLastCalledWith("Meldrift storage is busy.");
     });
 
-    it("locks transfers while the KyuBoard-only deletion is pending", async () => {
+    it("locks transfers while the Meldrift-only deletion is pending", async () => {
         resetBoardDatabaseMock.mockReturnValueOnce(new Promise<void>(() => undefined));
         const { result } = renderHook(() => useBoardTransfer({
             exportDisabled: false,

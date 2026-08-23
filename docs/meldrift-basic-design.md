@@ -1,8 +1,8 @@
-# KyuBoard Lite 기본 설계
+# Meldrift Free Edition 기본 설계
 
 ## 제품 범위
 
-KyuBoard Lite는 로그인과 보드 목록이 없는 단일 사용자·단일 보드 앱이다. `/`에서 고정 `board_id = 1`을 바로 열며 서버 데이터베이스나 서버 파일 업로드 기능은 없다.
+Meldrift Free Edition은 로그인과 보드 목록이 없는 단일 사용자·단일 보드 앱이다. `/`에서 고정 `board_id = 1`을 바로 열며 서버 데이터베이스나 서버 파일 업로드 기능은 없다.
 
 예외는 AI 어시스턴트 하나다. 모델 호출에는 서버가 필요하므로 `app/api/ai/*`에 라우트가 있고, 로그인이 없는 대신 어시스턴트 자체에 비밀번호가 걸려 있다. 환경변수를 넣지 않으면 어시스턴트는 꺼진 상태가 되고 나머지 기능은 그대로 동작한다. 자세한 내용은 `detailed-design/ai-assistant.md`를 본다.
 
@@ -16,7 +16,7 @@ Next.js page (/)
        └─ browser-db client (RPC)
             └─ Web Worker
                  ├─ SQLite WASM in-memory DB
-                 └─ IndexedDB (`kyuboard-lite/files/database`)
+                 └─ 전용 IndexedDB (`files/database`)
 ```
 
 CRUD 및 Export/Import를 포함한 **데이터 작업에는 Next API Route나 서버 파일시스템을 사용하지 않는다.** Worker는 작업을 순서대로 실행해 저장, Export, Import가 서로 끼어들지 않게 한다.
@@ -48,7 +48,7 @@ AI 어시스턴트 라우트는 이 흐름 밖에 있다. 보드 데이터를 �
 
 ## Export
 
-Export 직전에 현재 snapshot 저장 RPC가 완료될 때까지 기다린 뒤 SQLite 메모리 DB를 serialize해 `kyuboard-lite.sqlite`로 다운로드한다. 카드 편집, 드로잉 모드, 저장하지 않은 AI 제안 중에는 미완성 draft가 생길 수 있으므로 Export를 비활성화한다.
+Export 직전에 현재 snapshot 저장 RPC가 완료될 때까지 기다린 뒤 SQLite 메모리 DB를 serialize해 `meldrift-free.sqlite`로 다운로드한다. 카드 편집, 드로잉 모드, 저장하지 않은 AI 제안 중에는 미완성 draft가 생길 수 있으므로 Export를 비활성화한다.
 
 ## Import
 
@@ -66,9 +66,9 @@ Export 직전에 현재 snapshot 저장 RPC가 완료될 때까지 기다린 뒤
 
 ## Reset
 
-오른쪽 위 메뉴의 Reset은 확인 모달을 거친 뒤 현재 origin의 KyuBoard Lite 전용 IndexedDB 데이터베이스 `kyuboard-lite`를 삭제한다. 메모, 이미지 BLOB, Mermaid, 표, 드로잉을 담은 SQLite 파일 전체가 영구 삭제되고 페이지를 다시 열어 빈 기본 DB를 만든다. Reset 중에는 자동 저장과 Export/Import를 멈춰 삭제 직후 이전 snapshot이 다시 저장되지 않게 한다.
+오른쪽 위 메뉴의 Reset은 확인 모달을 거친 뒤 현재 origin의 Meldrift Free Edition 전용 IndexedDB 데이터베이스를 삭제한다. 메모, 이미지 BLOB, Mermaid, 표, 드로잉을 담은 SQLite 파일 전체가 영구 삭제되고 페이지를 다시 열어 빈 기본 DB를 만든다. Reset 중에는 자동 저장과 Export/Import를 멈춰 삭제 직후 이전 snapshot이 다시 저장되지 않게 한다.
 
-삭제 범위는 정확히 `kyuboard-lite` 하나다. 같은 origin의 다른 IndexedDB 데이터베이스, Cache Storage, localStorage, sessionStorage, 쿠키는 일괄 삭제하지 않는다. 삭제 자체가 실패하면 페이지를 새로고침하거나 더 넓은 저장소를 지우지 않고 오류를 표시해 기존 데이터를 유지한다.
+삭제 범위는 정확히 앱 전용 데이터베이스 하나다. 같은 origin의 다른 IndexedDB 데이터베이스, Cache Storage, localStorage, sessionStorage, 쿠키는 일괄 삭제하지 않는다. 삭제 자체가 실패하면 페이지를 새로고침하거나 더 넓은 저장소를 지우지 않고 오류를 표시해 기존 데이터를 유지한다.
 
 ## 배포 및 보존 범위
 

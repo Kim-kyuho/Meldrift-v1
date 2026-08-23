@@ -30,9 +30,9 @@ describe("ConfirmDialog", () => {
     it("renders through a portal and dispatches confirm and cancel", () => {
         const onConfirm = vi.fn();
         const onCancel = vi.fn();
-        render(<ConfirmDialog title="Reset KyuBoard Lite?" message="Once deleted, your board data cannot be recovered." onConfirm={onConfirm} onCancel={onCancel} />);
+        render(<ConfirmDialog title="Reset Meldrift Free Edition?" message="Once deleted, your board data cannot be recovered." onConfirm={onConfirm} onCancel={onCancel} />);
 
-        expect(screen.getByRole("heading", { name: "Reset KyuBoard Lite?" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Reset Meldrift Free Edition?" })).toBeInTheDocument();
         expect(screen.getByText("Once deleted, your board data cannot be recovered.")).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "Yes" }));
         fireEvent.click(screen.getByRole("button", { name: "No" }));
@@ -41,7 +41,7 @@ describe("ConfirmDialog", () => {
     });
 });
 
-describe("Lite board controls", () => {
+describe("Free Edition board controls", () => {
     afterEach(() => vi.unstubAllGlobals());
 
     it("disables Export while a card is being edited", () => {
