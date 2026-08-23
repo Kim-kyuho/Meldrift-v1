@@ -6,8 +6,8 @@ export const metadata: Metadata = {
   title: "KyuBoard Lite",
   description: "A local-first free-form board with portable SQLite save files.",
   icons: {
-    icon: "/favicon.ico?v=2",
-    apple: "/apple-touch-icon.png?v=2",
+    icon: "/favicon.ico?v=4",
+    apple: "/apple-touch-icon.png?v=4",
   },
 };
 

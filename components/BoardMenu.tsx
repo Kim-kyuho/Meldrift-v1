@@ -38,7 +38,7 @@ export default function BoardMenu({
 
     return (
         <>
-            <div className="fixed left-5 top-5 z-50000 rounded-xl bg-white/75 px-[9px] py-1.5 shadow-md">
+            <div className="fixed left-5 top-5 z-50000 rounded-xl bg-white/75 px-3 py-1.5 shadow-md">
                 <Link
                     href="/"
                     aria-label="Meldrift home"
@@ -51,7 +51,7 @@ export default function BoardMenu({
                         width={256}
                         height={256}
                         priority
-                        className="h-[27px] w-[27px] shrink-0"
+                        className="size-7 shrink-0"
                     />
                     <Image
                         src="/meldrift-wordmark.png"
@@ -59,7 +59,7 @@ export default function BoardMenu({
                         width={512}
                         height={127}
                         priority
-                        className="h-auto w-[84px] sm:w-24"
+                        className="h-auto w-21 sm:w-24"
                     />
                 </Link>
             </div>
