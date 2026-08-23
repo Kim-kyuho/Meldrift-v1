@@ -6,8 +6,8 @@ Meldrift Free Edition is the local, single-board edition of Meldrift, a personal
 
 Ideas do not always begin in a clear order. Meldrift allows memos, images, tables, diagrams, and drawings to be placed freely before their contents are organized into a Markdown document.
 
-![Meldrift screenshot 1](screenshot/IMG_1143.jpeg)
-![Meldrift screenshot 2](screenshot/IMG_1144.jpeg)
+![Meldrift screenshot 1](https://github.com/Kim-kyuho/Meldrift/blob/main/public/IMG_1161.jpeg)
+![Meldrift screenshot 2](https://github.com/Kim-kyuho/Meldrift/blob/main/public/IMG_1162.jpeg)
 
 ## Features
 
