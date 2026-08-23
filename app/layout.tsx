@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "KyuBoard Lite",
-  description: "A local-first free-form board with portable SQLite save files.",
+  title: "Meldrift",
+  description: "Meld your ideas. Drift into clarity.",
   icons: {
     icon: "/favicon.ico?v=4",
     apple: "/apple-touch-icon.png?v=4",
