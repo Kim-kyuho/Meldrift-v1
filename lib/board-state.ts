@@ -72,7 +72,7 @@ export type BoardSnapshot = {
 
 export const defaultBoard: BoardInfo = {
     boardId: defaultBoardId,
-    title: "KyuBoard Lite",
+    title: "Meldrift Free Edition",
     width: 4000,
     height: 3000,
 };
@@ -166,7 +166,7 @@ export const boardSnapshotSchema = z.object({
 export function parseBoardSnapshot(value: unknown): BoardSnapshot {
     const result = boardSnapshotSchema.safeParse(value);
     if (!result.success) {
-        throw new Error("The SQLite file contains invalid KyuBoard Lite data.");
+        throw new Error("The SQLite file contains invalid Meldrift Free Edition data.");
     }
     return result.data;
 }

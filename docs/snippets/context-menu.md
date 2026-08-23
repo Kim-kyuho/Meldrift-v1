@@ -90,7 +90,7 @@ const handleColorSelect = (color: string) => {
 - `ImageContextMenu`: 이미지 삭제
 - `BoardContextMenu`: 보드 삭제
 
-규보드 적용 위치:
+Meldrift 적용 위치:
 
 - `components/MemoContextMenu.tsx`
 - `components/ImageContextMenu.tsx`

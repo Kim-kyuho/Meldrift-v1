@@ -74,7 +74,7 @@ const [boardMessage, setBoardMessage] = useState("");
 )}
 ```
 
-규보드 적용 위치:
+Meldrift 적용 위치:
 
 - `components/PressableButton.tsx`
 - `components/MemoCard.tsx`

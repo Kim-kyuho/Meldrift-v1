@@ -37,7 +37,7 @@ export function useBoardTransfer({
             const fileUrl = URL.createObjectURL(file);
             const downloadLink = document.createElement("a");
             downloadLink.href = fileUrl;
-            downloadLink.download = "kyuboard-lite.sqlite";
+            downloadLink.download = "meldrift-free.sqlite";
             document.body.appendChild(downloadLink);
             downloadLink.click();
             downloadLink.remove();
@@ -95,7 +95,7 @@ export function useBoardTransfer({
             await resetBoardDatabase();
             window.location.reload();
         } catch (error) {
-            setMessage(errorMessage(error, "KyuBoard Lite browser data could not be reset."));
+            setMessage(errorMessage(error, "Meldrift Free Edition browser data could not be reset."));
             setResetting(false);
         }
     };

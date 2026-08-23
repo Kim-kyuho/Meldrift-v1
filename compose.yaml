@@ -1,5 +1,5 @@
 services:
-  kyuboard:
+  meldrift:
     build:
       context: .
       dockerfile: Dockerfile
@@ -8,7 +8,7 @@ services:
     command: npm run dev -- --hostname 0.0.0.0
     volumes:
       - .:/app
-      - kyuboard_node_modules:/app/node_modules
+      - meldrift_node_modules:/app/node_modules
 
 volumes:
-  kyuboard_node_modules:
+  meldrift_node_modules:

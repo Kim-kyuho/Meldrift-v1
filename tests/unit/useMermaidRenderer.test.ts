@@ -35,7 +35,7 @@ describe("useMermaidRenderer", () => {
         expect(result.current.svg).not.toContain('height="300"');
         expect(result.current.svg).toContain('preserveAspectRatio="xMidYMid meet"');
         expect(mermaidMock.parse).not.toHaveBeenCalled();
-        expect(document.querySelector("[id^='kyuboard-mermaid-5-']")).toBeNull();
+        expect(document.querySelector("[id^='meldrift-mermaid-5-']")).toBeNull();
     });
 
     it("reports syntax errors and clears an empty source", async () => {

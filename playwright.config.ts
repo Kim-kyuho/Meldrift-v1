@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 import { aiTestPassword } from "./tests/e2e/helpers";
 
 // PLAYWRIGHT_BASE_URL을 지정하면 로컬 서버를 새로 띄우지 않고 해당 환경을 검사한다.
-// 예: PLAYWRIGHT_BASE_URL=https://kyu-board.vercel.app npm run test:e2e
+// 예: PLAYWRIGHT_BASE_URL=https://your-deployment.example npm run test:e2e
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 const usesExternalServer = Boolean(process.env.PLAYWRIGHT_BASE_URL);
 
@@ -44,7 +44,7 @@ export default defineConfig({
         navigationTimeout: 30_000,
     },
 
-    // KyuBoard에서 실제로 중요한 데스크톱과 Apple 모바일 화면을 우선 검증한다.
+    // Meldrift에서 실제로 중요한 데스크톱과 Apple 모바일 화면을 우선 검증한다.
     projects: [
         {
             name: "desktop-chromium",

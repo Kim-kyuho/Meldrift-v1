@@ -1,21 +1,21 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 // 세션 저장소가 없어서 서명한 토큰을 쿠키에 담아 씀 - 서명 키가 AI_PASSWORD라 비밀번호를 바꾸면 기존 쿠키 전부 무효
-export const aiSessionCookieName = "kyuboard_ai";
+export const aiSessionCookieName = "meldrift_ai";
 
 // 탭 복구로 세션 쿠키가 되살아나는 경우가 있어서 토큰에도 만료 시간을 넣음
 export const aiSessionMaxAgeSeconds = 12 * 60 * 60;
 
 const tokenVersion = "v1";
 
-const getSigningKey = (password: string) => createHmac("sha256", "kyuboard-lite-ai").update(password).digest();
+const getSigningKey = (password: string) => createHmac("sha256", "meldrift-free-ai").update(password).digest();
 
 const sign = (payload: string, password: string) =>
     createHmac("sha256", getSigningKey(password)).update(payload).digest("base64url");
 
 // 길이 차이로 정보가 새지 않게 해시로 길이를 맞춘 뒤 비교
 const equals = (left: string, right: string) => {
-    const digest = (value: string) => createHmac("sha256", "kyuboard-lite-compare").update(value).digest();
+    const digest = (value: string) => createHmac("sha256", "meldrift-free-compare").update(value).digest();
 
     return timingSafeEqual(digest(left), digest(right));
 };

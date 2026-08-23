@@ -2,7 +2,7 @@
 
 소스: `components/MemoCard.tsx`, `hooks/useMemoCard.ts`
 
-카드 리사이즈 최소 크기는 정식 KyuBoard와 동일하게 `180 x 180`이다.
+카드 리사이즈 최소 크기는 정식 Meldrift와 동일하게 `180 x 180`이다.
 
 ## MemoCard Props
 

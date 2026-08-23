@@ -69,7 +69,7 @@ const handleResizeStop: RndResizeCallback = (
 <Rnd scale={zoom} />
 ```
 
-규보드 적용 위치:
+Meldrift 적용 위치:
 
 - `components/MemoCard.tsx`
 - `components/ImageCard.tsx`

@@ -24,7 +24,7 @@ describe("browser SQLite board snapshots", () => {
             x: 0, y: 0, z: 1, width: 400, height: 300,
         });
 
-        expect(() => parseBoardSnapshot(snapshot)).toThrow(/invalid KyuBoard Lite data/i);
+        expect(() => parseBoardSnapshot(snapshot)).toThrow(/invalid Meldrift Free Edition data/i);
     });
 
     it("accepts compressed local image bytes", () => {

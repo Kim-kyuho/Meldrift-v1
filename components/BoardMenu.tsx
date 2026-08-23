@@ -104,7 +104,7 @@ export default function BoardMenu({
                     <PressableButton
                         variant="menu"
                         disabled={transferring || resetting}
-                        title="Delete this browser's KyuBoard Lite SQLite data"
+                        title="Delete this browser's Meldrift Free Edition SQLite data"
                         className="flex items-center gap-2 font-bold text-rose-600 disabled:cursor-not-allowed disabled:opacity-35"
                         onClick={() => runAndClose(onReset)}
                     >
