@@ -8,11 +8,9 @@
 | --- | --- | --- |
 | `table` | `BoardTable` | `useTableCard`에 전달, `Rnd` 초기 위치/크기 소스 |
 | `zoom` | `number` | `Rnd scale={zoom}` (77줄) |
-| `canEdit` | `boolean` | `useTableCard`에 전달 → `editTable`의 권한 체크 |
 | `isEditing` | `boolean` | `Rnd`의 `disableDragging`/`enableResizing`(79~80줄), 드래그 핸들 노출(94줄), 툴바 노출(109줄) |
-| `onEditing` | `() => void` | `useTableCard.editTable`이 권한 있을 때 호출 |
+| `onEditing` | `() => void` | `useTableCard.editTable`이 호출 |
 | `onEditingClear` | `() => void` | 외부 클릭 저장 완료 후(useTableCard), 삭제 확정 후(`confirmDelete`) |
-| `onPermissionDenied` | `() => void` | `editTable`이 `canEdit === false`일 때 호출 |
 | `onInsert` | `(table: BoardTable) => void` | `saveTable`에서 `table.id < 0`(신규)일 때 |
 | `onUpdate` | `(table: BoardTable) => void` | `saveTable`에서 기존 행일 때 |
 | `onDelete` | `(id: number) => void` | `confirmDelete`에서 호출 |
@@ -48,7 +46,7 @@
 
 | 핸들러 | 동작 |
 | --- | --- |
-| `editTable()` (71~77줄) | `canEdit`이 false면 `onPermissionDenied()` 후 종료, true면 `onEditing()` |
+| `editTable()` (71~77줄) | `onEditing()`을 호출해 바로 편집 시작 |
 | `handleDoubleTap` (79~85줄) | `event.pointerType !== "touch"`면 무시. 터치이고 이전 탭과 300ms 미만이면 `editTable()` 호출(더블탭으로 편집 진입) |
 | `handleTablePress` (135~137줄) | `event.stopPropagation()`만 수행 — 보드 레벨 클릭 핸들러로 이벤트가 전파되는 것을 차단 |
 | `handleDragStop` (139~143줄) | `Rnd`가 준 `{x, y}`로 `cardState` 갱신 |
@@ -59,7 +57,7 @@
 
 | 요소 | 조건 | 비고 |
 | --- | --- | --- |
-| `Rnd` (70줄) | 항상 | `className="table-rnd-{table.id} ..."`, `zIndex: isEditing ? ACTIVE_CARD_Z : table.z`, `bounds="parent"`, `dragHandleClassName="table-drag-handle"`, `disableDragging={!isEditing \|\| !canEdit}`, `enableResizing={isEditing}`, `minWidth=360`, `minHeight=128` |
+| `Rnd` (70줄) | 항상 | `className="table-rnd-{table.id} ..."`, `zIndex: isEditing ? ACTIVE_CARD_Z : table.z`, `bounds="parent"`, `dragHandleClassName="table-drag-handle"`, `disableDragging={!isEditing}`, `enableResizing={isEditing}`, `minWidth=360`, `minHeight=128` |
 | 내부 wrapper `div` (86줄) | 항상 | `overflow-hidden` — 표 스크롤은 `TableGrid` 내부(`overflow-auto`)가 담당, `onClick`(stopPropagation), `onDoubleClick={editTable}`, `onPointerDown={handleDoubleTap}` |
 | `TableGrid` (92줄) | 항상 렌더(편집 여부 무관) | `isEditing`에 따라 내부 표시만 전환(레이아웃 크기 변화 방지) |
 | 드래그 핸들 바 (95줄) | `isEditing`일 때만 | 하단 중앙, `cursor-grab`/`active:cursor-grabbing`, 눌림 상태에 따라 `bg-black/70` ↔ `bg-black/25` |

@@ -10,12 +10,10 @@
 | --- | --- | --- |
 | `memo` | `MemoCardData` | `useMemoCard`에 전달, `Rnd default/position/size` 초기값 |
 | `zoom` | `number` | `Rnd scale` |
-| `canEdit` | `boolean` | `editMemo` 권한 체크 |
 | `isEditing` | `boolean` | 편집/표시 마크업 분기(136줄), `Rnd disableDragging/enableResizing`, `MemoToolBar`/드래그 핸들 노출 |
 | `isFocused` | `boolean` | `useMemoCard`에 전달 — 포커스 클래스(`memo-focused`, 106줄)와 바깥 클릭 시 포커스 해제 판정에 사용 |
 | `onFocus`/`onFocusClear` | `() => void` | 카드 클릭 시 포커스 설정, 빈 보드 클릭 시 해제 |
 | `onEditing`/`onEditingClear` | `() => void` | 편집 진입/종료 |
-| `onPermissionDenied` | `() => void` | `canEdit`가 false일 때 |
 | `onInsert` | `(tempId, boardId, content, x, y, z, width, height, color) => void` | `saveMemo`가 `memo.id < 0`일 때 |
 | `onUpdate` | 동일 시그니처 | 기존 메모일 때 |
 | `onDelete` | `(id: number) => void` | `confirmDelete`에서 |
@@ -51,9 +49,8 @@
 
 ## `editMemo()` (141~153줄)
 
-1. `canEdit`이 false면 `onPermissionDenied()` 후 종료
-2. `onEditing()` + `onFocus()` 동시 호출 — 편집 진입은 항상 포커스도 함께 설정
-3. `setTimeout(..., 0)`으로 다음 틱에 `memoFocusRef.current?.focus()` — DOM이 편집 모드로 전환된 뒤 포커스를 주기 위한 지연
+1. `onEditing()` + `onFocus()` 동시 호출 — 편집 진입은 항상 포커스도 함께 설정
+2. `setTimeout(..., 0)`으로 다음 틱에 `memoFocusRef.current?.focus()` — DOM이 편집 모드로 전환된 뒤 포커스를 주기 위한 지연
 
 ## 기타 핸들러
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-type BoardMessageType = "permission" | "memo" | "error"
+type BoardMessageType = "board" | "memo" | "error"
 type BoardMessageProps = {
     message: string
     type: BoardMessageType
@@ -28,7 +28,7 @@ export default function BoardMessage({ message, type, onDismiss }:BoardMessagePr
         return () => window.clearTimeout(timer);
     }, [message]);
 
-    if(type === "permission"){
+    if(type === "board" || type === "memo"){
         return(
             <>
             {message && (
@@ -42,29 +42,13 @@ export default function BoardMessage({ message, type, onDismiss }:BoardMessagePr
             </>
         )
     }
-    if(type === "memo"){
-        return(
-            <>
-            {message && (
-                <div
-                    className="fixed left-1/2 top-20 max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-rose-600 shadow-md"
-                    style={{ zIndex: 60 }}
-                >
-                    {message}
-                </div>
-            )}
-            </>
-        )
-    }
-    if(type === "error"){
-        return(
-            <>
-            {message && (
-                <p className="text-xs leading-5 text-rose-600">
-                    {message}
-                </p>
-            )}
-            </>
-        )
-    }  
+    return(
+        <>
+        {message && (
+            <p className="text-xs leading-5 text-rose-600">
+                {message}
+            </p>
+        )}
+        </>
+    )
 }

@@ -67,10 +67,10 @@ const [dragHandlePressed, setDragHandlePressed] = useState(false);
 ## 메시지 표시
 
 ```tsx
-const [permissionMessage, setPermissionMessage] = useState("");
+const [boardMessage, setBoardMessage] = useState("");
 
-{permissionMessage && (
-  <BoardMessage type="permission" message={permissionMessage} />
+{boardMessage && (
+  <BoardMessage type="board" message={boardMessage} />
 )}
 ```
 

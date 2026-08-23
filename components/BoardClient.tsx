@@ -46,9 +46,7 @@ export default function BoardClient() {
     const [aboutOpen, setAboutOpen] = useState(false);
     const [markdownViewOpen, setMarkdownViewOpen] = useState(false);
     const [boardNavigatorOpen, setBoardNavigatorOpen] = useState(false);
-    const [permissionMessage, setPermissionMessage] = useState("");
-    const canEditCard = true;
-    const showPermissionMessage = () => undefined;
+    const [boardMessage, setBoardMessage] = useState("");
 
     const {
         boardZoom,
@@ -70,7 +68,7 @@ export default function BoardClient() {
         boardId: currentBoard.boardId,
         boardZoom,
         cardLocationRef,
-        setMessage: setPermissionMessage,
+        setMessage: setBoardMessage,
     });
 
     const {
@@ -189,7 +187,7 @@ export default function BoardClient() {
         boardHeight,
         boardZoom,
         cardLocationRef,
-        setMessage: setPermissionMessage,
+        setMessage: setBoardMessage,
         memos,
         mermaids,
         tables,
@@ -268,7 +266,7 @@ export default function BoardClient() {
         handleResetConfirm,
     } = useBoardTransfer({
         exportDisabled,
-        setMessage: setPermissionMessage,
+        setMessage: setBoardMessage,
         getSnapshot: () => snapshot,
     });
 
@@ -279,7 +277,7 @@ export default function BoardClient() {
 
         const timeoutId = window.setTimeout(() => {
             replaceBoardState(snapshot).catch((error: unknown) => {
-                setPermissionMessage(error instanceof Error ? error.message : "The board could not be saved.");
+                setBoardMessage(error instanceof Error ? error.message : "The board could not be saved.");
             });
         }, 150);
         return () => window.clearTimeout(timeoutId);
@@ -447,9 +445,9 @@ export default function BoardClient() {
             />
         )}
         <BoardMessage
-            type="permission"
-            message={permissionMessage}
-            onDismiss={() => setPermissionMessage("")}
+            type="board"
+            message={boardMessage}
+            onDismiss={() => setBoardMessage("")}
         />
         <BoardMessage
             type="memo"
@@ -460,7 +458,7 @@ export default function BoardClient() {
          <main
             className="h-screen w-screen select-none bg-neutral-200"
             onClick={()=>{
-                setPermissionMessage("");
+                setBoardMessage("");
                 setMemoMessage("");
             }}
         >
@@ -498,11 +496,9 @@ export default function BoardClient() {
                             key={image.imageId}
                             image={image}
                             zoom={boardZoom}
-                            canEdit={canEditCard}
                             isEditing={editingImageId === image.imageId}
                             onEditing={() => setEditingImageId(image.imageId)}
                             onEditingClear={() => setEditingImageId(null)}
-                            onPermissionDenied={showPermissionMessage}
                             onUpdate={handleUpdateImage}
                             onDelete={handleDeleteImage}
                             onBringToFront={() => handleCardLayer("image", image.imageId, "front")}
@@ -514,14 +510,12 @@ export default function BoardClient() {
                             key={memo.id}
                             memo={memo}
                             zoom={boardZoom}
-                            canEdit={canEditCard}
                             isEditing={editingMemoId === memo.id}
                             isFocused={focusedMemoId === memo.id}
                             onFocus={() => setFocusedMemoId(memo.id)}
                             onFocusClear={() => setFocusedMemoId(null)}
                             onEditing={() => setEditingMemoId(memo.id)}
                             onEditingClear={() => setEditingMemoId(null)}
-                            onPermissionDenied={showPermissionMessage}
                             onInsert={handleInsertMemo}
                             onUpdate={handleUpdateMemo}
                             onDelete={handleDeleteMemo}
@@ -534,11 +528,9 @@ export default function BoardClient() {
                             key={mermaid.id}
                             mermaid={mermaid}
                             zoom={boardZoom}
-                            canEdit={canEditCard}
                             isEditing={editingMermaidId === mermaid.id}
                             onEditing={() => setEditingMermaidId(mermaid.id)}
                             onEditingClear={() => setEditingMermaidId(null)}
-                            onPermissionDenied={showPermissionMessage}
                             onInsert={handleInsertMermaid}
                             onUpdate={handleUpdateMermaid}
                             onDelete={handleDeleteMermaid}
@@ -551,11 +543,9 @@ export default function BoardClient() {
                             key={table.id}
                             table={table}
                             zoom={boardZoom}
-                            canEdit={canEditCard}
                             isEditing={editingTableId === table.id}
                             onEditing={() => setEditingTableId(table.id)}
                             onEditingClear={() => setEditingTableId(null)}
-                            onPermissionDenied={showPermissionMessage}
                             onInsert={handleInsertTable}
                             onUpdate={handleUpdateTable}
                             onDelete={handleDeleteTable}

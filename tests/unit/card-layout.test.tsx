@@ -37,11 +37,9 @@ describe("card surface layout", () => {
                     height: 180,
                 }}
                 zoom={1}
-                canEdit
                 isEditing={false}
                 onEditing={callback}
                 onEditingClear={callback}
-                onPermissionDenied={callback}
                 onUpdate={callback}
                 onDelete={callback}
                 onBringToFront={callback}
@@ -78,11 +76,9 @@ describe("card surface layout", () => {
                     height: 180,
                 }}
                 zoom={1}
-                canEdit
                 isEditing={false}
                 onEditing={callback}
                 onEditingClear={callback}
-                onPermissionDenied={callback}
                 onUpdate={callback}
                 onDelete={callback}
                 onBringToFront={callback}
@@ -110,11 +106,9 @@ describe("card surface layout", () => {
                     height: 180,
                 }}
                 zoom={1}
-                canEdit
                 isEditing={false}
                 onEditing={callback}
                 onEditingClear={callback}
-                onPermissionDenied={callback}
                 onInsert={callback}
                 onUpdate={callback}
                 onDelete={callback}
@@ -143,11 +137,9 @@ describe("card surface layout", () => {
                     height: 180,
                 }}
                 zoom={1}
-                canEdit
                 isEditing={false}
                 onEditing={callback}
                 onEditingClear={callback}
-                onPermissionDenied={callback}
                 onInsert={callback}
                 onUpdate={callback}
                 onDelete={callback}

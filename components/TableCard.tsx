@@ -13,11 +13,9 @@ const TABLE_CARD_MIN_HEIGHT = 128;
 type TableCardProps = {
     table: BoardTable;
     zoom: number;
-    canEdit: boolean;
     isEditing: boolean;
     onEditing: () => void;
     onEditingClear: () => void;
-    onPermissionDenied: () => void;
     onInsert: (table: BoardTable) => void;
     onUpdate: (table: BoardTable) => void;
     onDelete: (id: number) => void;
@@ -28,11 +26,9 @@ type TableCardProps = {
 export default function TableCard({
     table,
     zoom,
-    canEdit,
     isEditing,
     onEditing,
     onEditingClear,
-    onPermissionDenied,
     onInsert,
     onUpdate,
     onDelete,
@@ -56,11 +52,9 @@ export default function TableCard({
         confirmDelete,
     } = useTableCard({
         table,
-        canEdit,
         isEditing,
         onEditing,
         onEditingClear,
-        onPermissionDenied,
         onInsert,
         onUpdate,
         onDelete,
@@ -76,7 +70,7 @@ export default function TableCard({
                 bounds="parent"
                 scale={zoom}
                 dragHandleClassName="table-drag-handle"
-                disableDragging={!isEditing || !canEdit}
+                disableDragging={!isEditing}
                 enableResizing={isEditing}
                 minWidth={360}
                 minHeight={TABLE_CARD_MIN_HEIGHT}

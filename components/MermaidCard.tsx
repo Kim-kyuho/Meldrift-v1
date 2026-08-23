@@ -10,11 +10,9 @@ import MermaidToolBar from "./MermaidToolBar";
 type MermaidCardProps = {
     mermaid: MermaidCardData;
     zoom: number;
-    canEdit: boolean;
     isEditing: boolean;
     onEditing: () => void;
     onEditingClear: () => void;
-    onPermissionDenied: () => void;
     onUpdate: (
         id: number,
         boardId: number,
@@ -43,11 +41,9 @@ type MermaidCardProps = {
 export default function MermaidCard({
     mermaid,
     zoom,
-    canEdit,
     isEditing,
     onEditing,
     onEditingClear,
-    onPermissionDenied,
     onInsert,
     onUpdate,
     onDelete,
@@ -71,11 +67,9 @@ export default function MermaidCard({
         confirmDelete,
     } = useMermaidCard({
         mermaid,
-        canEdit,
         isEditing,
         onEditing,
         onEditingClear,
-        onPermissionDenied,
         onInsert,
         onUpdate,
         onDelete,
@@ -112,7 +106,7 @@ export default function MermaidCard({
                 minWidth={180}
                 minHeight={180}
                 dragHandleClassName="mermaid-drag-handle"
-                disableDragging={!isEditing || !canEdit}
+                disableDragging={!isEditing}
                 enableResizing={isEditing}
                 onDragStop={handleDragStop}
                 onResizeStop={handleResizeStop}

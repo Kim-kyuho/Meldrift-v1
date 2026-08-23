@@ -243,7 +243,7 @@ describe("BoardMessage", () => {
     it("dismisses a visible message after 3.5 seconds", () => {
         vi.useFakeTimers();
         const onDismiss = vi.fn();
-        render(<BoardMessage type="memo" message="No memos exist." onDismiss={onDismiss} />);
+        render(<BoardMessage type="board" message="The board could not be saved." onDismiss={onDismiss} />);
 
         act(() => vi.advanceTimersByTime(3499));
         expect(onDismiss).not.toHaveBeenCalled();

@@ -10,14 +10,12 @@ import MemoToolBar from "./MemoToolBar";
 type MemoCardProps = {
     memo: MemoCardData;
     zoom: number;
-    canEdit: boolean;
     isEditing: boolean;
     isFocused: boolean;
     onFocus: () => void;
     onFocusClear: () => void;
     onEditing: () => void;
     onEditingClear: () => void;
-    onPermissionDenied: () => void;
     onInsert: (
         tempId: number,
         boardId: number,
@@ -50,14 +48,12 @@ export default function MemoCard(props: MemoCardProps) {
     const {
         memo,
         zoom,
-        canEdit,
         isEditing,
         isFocused,
         onFocus,
         onFocusClear,
         onEditing,
         onEditingClear,
-        onPermissionDenied,
         onInsert,
         onUpdate,
         onDelete,
@@ -84,14 +80,12 @@ export default function MemoCard(props: MemoCardProps) {
         confirmDelete,
     } = useMemoCard({
         memo,
-        canEdit,
         isEditing,
         isFocused,
         onEditing,
         onEditingClear,
         onFocus,
         onFocusClear,
-        onPermissionDenied,
         onInsert,
         onUpdate,
         onDelete,
@@ -126,7 +120,7 @@ export default function MemoCard(props: MemoCardProps) {
                 minWidth={180}
                 minHeight={180}
                 dragHandleClassName="memo-drag-handle"
-                disableDragging={!isEditing || !canEdit}
+                disableDragging={!isEditing}
                 enableResizing={isEditing}
                 onDragStop={handleDragStop}
                 onResizeStop={handleResizeStop}

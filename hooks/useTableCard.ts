@@ -5,11 +5,9 @@ import { TableSource } from "@/lib/table-card";
 
 type UseTableCardOptions = {
     table: BoardTable;
-    canEdit: boolean;
     isEditing: boolean;
     onEditing: () => void;
     onEditingClear: () => void;
-    onPermissionDenied: () => void;
     onInsert: (table: BoardTable) => void;
     onUpdate: (table: BoardTable) => void;
     onDelete: (id: number) => void;
@@ -17,11 +15,9 @@ type UseTableCardOptions = {
 
 export function useTableCard({
     table,
-    canEdit,
     isEditing,
     onEditing,
     onEditingClear,
-    onPermissionDenied,
     onInsert,
     onUpdate,
     onDelete,
@@ -69,10 +65,6 @@ export function useTableCard({
     }, [onInsert, onUpdate, table]);
 
     const editTable = () => {
-        if (!canEdit) {
-            onPermissionDenied();
-            return;
-        }
         onEditing();
     };
 

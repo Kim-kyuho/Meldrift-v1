@@ -40,21 +40,19 @@ describe("card hooks", () => {
         const setup = (overrides: Partial<Parameters<typeof useMemoCard>[0]> = {}) => {
             const callbacks = {
                 onEditing: vi.fn(), onEditingClear: vi.fn(), onFocus: vi.fn(), onFocusClear: vi.fn(),
-                onPermissionDenied: vi.fn(), onInsert: vi.fn(), onUpdate: vi.fn(), onDelete: vi.fn(),
+                onInsert: vi.fn(), onUpdate: vi.fn(), onDelete: vi.fn(),
             };
             const hook = renderHook(() => useMemoCard({
-                memo, canEdit: true, isEditing: true, isFocused: true, ...callbacks, ...overrides,
+                memo, isEditing: true, isFocused: true, ...callbacks, ...overrides,
             }));
             return { ...hook, ...callbacks };
         };
 
-        it("enforces permission before entering edit mode", () => {
-            const onPermissionDenied = vi.fn();
+        it("enters edit mode directly", () => {
             const onEditing = vi.fn();
-            const { result } = setup({ canEdit: false, onPermissionDenied, onEditing });
+            const { result } = setup({ onEditing });
             act(() => result.current.editMemo());
-            expect(onPermissionDenied).toHaveBeenCalledOnce();
-            expect(onEditing).not.toHaveBeenCalled();
+            expect(onEditing).toHaveBeenCalledOnce();
         });
 
         it("saves the latest content and rounded geometry on an empty-board press", () => {
@@ -92,8 +90,8 @@ describe("card hooks", () => {
             const onUpdate = vi.fn();
             const onEditingClear = vi.fn();
             const { result } = renderHook(() => useImageCard({
-                image, canEdit: true, isEditing: true, onEditing: vi.fn(), onEditingClear,
-                onPermissionDenied: vi.fn(), onUpdate, onDelete: vi.fn(),
+                image, isEditing: true, onEditing: vi.fn(), onEditingClear,
+                onUpdate, onDelete: vi.fn(),
             }));
             act(() => result.current.handleDragStop({} as never, { x: 50.6, y: 60.4 } as never));
             act(() => dispatchBoardPress("pointerup"));
@@ -105,8 +103,8 @@ describe("card hooks", () => {
         it("deletes an image by id", () => {
             const onDelete = vi.fn();
             const { result } = renderHook(() => useImageCard({
-                image, canEdit: true, isEditing: true, onEditing: vi.fn(), onEditingClear: vi.fn(),
-                onPermissionDenied: vi.fn(), onUpdate: vi.fn(), onDelete,
+                image, isEditing: true, onEditing: vi.fn(), onEditingClear: vi.fn(),
+                onUpdate: vi.fn(), onDelete,
             }));
             act(() => result.current.confirmDelete());
             expect(onDelete).toHaveBeenCalledWith(2);
@@ -118,8 +116,8 @@ describe("card hooks", () => {
             const onInsert = vi.fn();
             const onEditingClear = vi.fn();
             const { result } = renderHook(() => useMermaidCard({
-                mermaid: { ...mermaid, id: -3 }, canEdit: true, isEditing: true,
-                onEditing: vi.fn(), onEditingClear, onPermissionDenied: vi.fn(),
+                mermaid: { ...mermaid, id: -3 }, isEditing: true,
+                onEditing: vi.fn(), onEditingClear,
                 onInsert, onUpdate: vi.fn(), onDelete: vi.fn(),
             }));
             act(() => result.current.setSource("sequenceDiagram"));
@@ -135,8 +133,8 @@ describe("card hooks", () => {
         it("does not save when the press starts inside the card", () => {
             const onUpdate = vi.fn();
             renderHook(() => useMermaidCard({
-                mermaid, canEdit: true, isEditing: true, onEditing: vi.fn(), onEditingClear: vi.fn(),
-                onPermissionDenied: vi.fn(), onInsert: vi.fn(), onUpdate, onDelete: vi.fn(),
+                mermaid, isEditing: true, onEditing: vi.fn(), onEditingClear: vi.fn(),
+                onInsert: vi.fn(), onUpdate, onDelete: vi.fn(),
             }));
             const card = document.createElement("div");
             card.className = "mermaid-rnd-3";
@@ -151,8 +149,8 @@ describe("card hooks", () => {
         it("updates a persisted table with the latest source and resized geometry", () => {
             const onUpdate = vi.fn();
             const { result } = renderHook(() => useTableCard({
-                table, canEdit: true, isEditing: true, onEditing: vi.fn(), onEditingClear: vi.fn(),
-                onPermissionDenied: vi.fn(), onInsert: vi.fn(), onUpdate, onDelete: vi.fn(),
+                table, isEditing: true, onEditing: vi.fn(), onEditingClear: vi.fn(),
+                onInsert: vi.fn(), onUpdate, onDelete: vi.fn(),
             }));
             const source = { columns: [{ id: "new", name: "New" }], rows: [] };
             act(() => result.current.setSource(source));
@@ -172,8 +170,8 @@ describe("card hooks", () => {
             const onDelete = vi.fn();
             const onEditingClear = vi.fn();
             const { result } = renderHook(() => useTableCard({
-                table, canEdit: true, isEditing: true, onEditing: vi.fn(), onEditingClear,
-                onPermissionDenied: vi.fn(), onInsert: vi.fn(), onUpdate, onDelete,
+                table, isEditing: true, onEditing: vi.fn(), onEditingClear,
+                onInsert: vi.fn(), onUpdate, onDelete,
             }));
             const dialog = document.createElement("div");
             dialog.className = "confirm-dialog";

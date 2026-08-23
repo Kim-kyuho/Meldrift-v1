@@ -24,11 +24,9 @@ export interface ImageCardData {
 
 type UseImageCardOptions = {
     image: ImageCardData;
-    canEdit: boolean;
     isEditing: boolean;
     onEditing: () => void;
     onEditingClear: () => void;
-    onPermissionDenied: () => void;
     onUpdate: (
         imageId: number,
         boardId: number,
@@ -43,11 +41,9 @@ type UseImageCardOptions = {
 
 export function useImageCard({
     image,
-    canEdit,
     isEditing,
     onEditing,
     onEditingClear,
-    onPermissionDenied,
     onUpdate,
     onDelete,
 }: UseImageCardOptions) {
@@ -82,11 +78,6 @@ export function useImageCard({
     ]);
 
     const editImage = () => {
-        if (!canEdit) {
-            onPermissionDenied();
-            return;
-        }
-
         onEditing();
     };
 

@@ -10,9 +10,8 @@
 | --- | --- | --- |
 | `mermaid` | `MermaidCardData` | `useMermaidCard`/`useMermaidRenderer`에 전달, `Rnd` 초기값 |
 | `zoom` | `number` | `Rnd scale` |
-| `canEdit` | `boolean` | `editMermaid` 권한 체크 |
 | `isEditing` | `boolean` | textarea 노출(125줄), 드래그 핸들 노출(149줄), 툴바 노출(165줄), `Rnd disableDragging/enableResizing` |
-| `onEditing`/`onEditingClear`/`onPermissionDenied` | `() => void` | 편집 흐름 콜백 |
+| `onEditing`/`onEditingClear` | `() => void` | 편집 흐름 콜백 |
 | `onInsert` | `(tempId, boardId, source, x, y, z, width, height) => void` | `saveMermaidDraft`가 `mermaid.id < 0`일 때 |
 | `onUpdate` | 동일 시그니처 | 기존 카드일 때 |
 | `onDelete` | `(id: number) => void` | `confirmDelete`에서 |
@@ -42,7 +41,7 @@
 
 | 핸들러 | 동작 |
 | --- | --- |
-| `editMermaid()` | `canEdit` false → `onPermissionDenied()`, true → `onEditing()` |
+| `editMermaid()` | `onEditing()`을 호출해 바로 편집 시작 |
 | `handleDoubleTap` | 터치 + 300ms 이내 재탭 → `editMermaid()` |
 | `handleMermaidPress` | `stopPropagation()`만 |
 | `handleDragStop`/`handleResizeStop` | `TableCard`/`ImageCard`와 동일 패턴으로 `cardState` 갱신 |
@@ -52,7 +51,7 @@
 
 | 요소 | 조건 | 비고 |
 | --- | --- | --- |
-| `Rnd` (90줄) | 항상 | 최소 크기 `180 x 180`. `className="mermaid-rnd-{id} ..."`, `dragHandleClassName="mermaid-drag-handle"`, `disableDragging={!isEditing \|\| !canEdit}`, `enableResizing={isEditing}` |
+| `Rnd` (90줄) | 항상 | 최소 크기 `180 x 180`. `className="mermaid-rnd-{id} ..."`, `dragHandleClassName="mermaid-drag-handle"`, `disableDragging={!isEditing}`, `enableResizing={isEditing}` |
 | Source textarea (126줄) | `isEditing`일 때만 | `h-2/5 min-h-24`, `font-mono`, `spellCheck={false}` — 카드 상단 40% |
 | 렌더 결과 영역 (134줄) | 항상 | 3분기: `renderError` → rose `<pre>` / `svg` → `dangerouslySetInnerHTML` / 둘 다 없음 → "Mermaid source is empty." |
 | 드래그 핸들 (150줄) | `isEditing`일 때만 | 하단 중앙, `TableCard`와 동일 시각 패턴 |

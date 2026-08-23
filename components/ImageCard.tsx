@@ -11,11 +11,9 @@ import ImageToolBar from "./ImageToolBar";
 type ImageCardProps = {
     image: ImageCardData;
     zoom: number;
-    canEdit: boolean;
     isEditing: boolean;
     onEditing: () => void;
     onEditingClear: () => void;
-    onPermissionDenied: () => void;
     onUpdate: (
         imageId: number,
         boardId: number,
@@ -35,11 +33,9 @@ export default function ImageCard(props: ImageCardProps) {
     const {
         image,
         zoom,
-        canEdit,
         isEditing,
         onEditing,
         onEditingClear,
-        onPermissionDenied,
         onUpdate,
         onDelete,
         onBringToFront,
@@ -59,11 +55,9 @@ export default function ImageCard(props: ImageCardProps) {
         closeDeleteDialog,
     } = useImageCard({
         image,
-        canEdit,
         isEditing,
         onEditing,
         onEditingClear,
-        onPermissionDenied,
         onUpdate,
         onDelete,
     });

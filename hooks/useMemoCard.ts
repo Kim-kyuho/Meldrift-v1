@@ -15,14 +15,12 @@ export interface MemoCardData {
 
 type UseMemoCardOptions = {
     memo: MemoCardData;
-    canEdit: boolean;
     isEditing: boolean;
     isFocused: boolean;
     onEditing: () => void;
     onEditingClear: () => void;
     onFocus: () => void;
     onFocusClear: () => void;
-    onPermissionDenied: () => void;
     onInsert: (
         tempId: number,
         boardId: number,
@@ -50,14 +48,12 @@ type UseMemoCardOptions = {
 
 export function useMemoCard({
     memo,
-    canEdit,
     isEditing,
     isFocused,
     onEditing,
     onEditingClear,
     onFocus,
     onFocusClear,
-    onPermissionDenied,
     onInsert,
     onUpdate,
     onDelete,
@@ -139,18 +135,13 @@ export function useMemoCard({
     }, [insertMemo, memo.id, updateMemo]);
 
     const editMemo = useCallback(() => {
-        if (!canEdit) {
-            onPermissionDenied();
-            return;
-        }
-
         onEditing();
         onFocus();
 
         window.setTimeout(() => {
             memoFocusRef.current?.focus();
         }, 0);
-    }, [canEdit, onEditing, onFocus, onPermissionDenied]);
+    }, [onEditing, onFocus]);
 
     const handleDoubleTap = (event: ReactPointerEvent<HTMLDivElement>) => {
         if (event.pointerType !== "touch") {
