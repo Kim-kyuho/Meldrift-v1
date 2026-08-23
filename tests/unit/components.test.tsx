@@ -49,7 +49,6 @@ describe("Lite board controls", () => {
         const setMenuOpen = vi.fn();
         render(<BoardMenu
             menuOpen
-            currentBoard={{ title: "KyuBoard Lite" }}
             setMenuOpen={setMenuOpen}
             exportDisabled
             transferring={false}
@@ -61,6 +60,10 @@ describe("Lite board controls", () => {
             onAbout={vi.fn()}
         />);
 
+        const meldriftHome = screen.getByRole("link", { name: "Meldrift home" });
+        expect(meldriftHome).toContainElement(screen.getByAltText("meldrift"));
+        expect(meldriftHome.querySelector('img[alt=""]')).toBeInTheDocument();
+        expect(screen.getByText("Free Edition")).toBeVisible();
         expect(screen.getByRole("button", { name: "Export" })).toBeDisabled();
         expect(screen.getByRole("button", { name: "Export" }).querySelector(".lucide-download")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Import" }).querySelector(".lucide-folder-open")).toBeInTheDocument();
