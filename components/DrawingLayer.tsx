@@ -9,6 +9,7 @@ import {
 import type { DrawingTool } from "@/hooks/useBoardDrawing";
 import { useDrawingPointer } from "@/hooks/useDrawingPointer";
 import { ACTIVE_CARD_Z } from "@/lib/zIndex";
+import type { PointerEvent as ReactPointerEvent } from "react";
 
 type DrawingLayerProps = {
     strokes: BoardStroke[];
@@ -22,6 +23,9 @@ type DrawingLayerProps = {
 };
 
 const markerStrokeOpacity = 0.82;
+const stopPointerPropagation = (event: ReactPointerEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+};
 
 function StrokePaths({ strokes }: { strokes: BoardStroke[] }) {
     return (
@@ -101,22 +105,14 @@ export default function DrawingLayer({
                 WebkitUserSelect: "none",
                 userSelect: "none",
             }}
-            onPointerDown={(event) => event.stopPropagation()}
-            onPointerMove={(event) => event.stopPropagation()}
-            onPointerUp={(event) => event.stopPropagation()}
-            onPointerCancel={(event) => event.stopPropagation()}
+            onPointerDown={stopPointerPropagation}
+            onPointerMove={stopPointerPropagation}
+            onPointerUp={stopPointerPropagation}
+            onPointerCancel={stopPointerPropagation}
         >
             <svg
                 ref={layerRef}
                 className="block h-full w-full"
-                style={{
-                    pointerEvents: "auto",
-                    touchAction: "none",
-                    cursor: "crosshair",
-                    WebkitTouchCallout: "none",
-                    WebkitUserSelect: "none",
-                    userSelect: "none",
-                }}
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}

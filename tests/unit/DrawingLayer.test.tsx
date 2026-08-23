@@ -46,9 +46,8 @@ describe("DrawingLayer pointer routing", () => {
         const layer = renderLayer(true, "draw");
         const captureLayer = layer.closest("[data-drawing-capture='true']") as HTMLElement;
 
-        expect(layer.style.pointerEvents).toBe("auto");
-        expect(layer.style.touchAction).toBe("none");
         expect(captureLayer).not.toBeNull();
+        expect(captureLayer.style.pointerEvents).toBe("auto");
         expect(captureLayer.style.touchAction).toBe("none");
         expect(layer.closest(canStartBoardPanSelector)).toBe(captureLayer);
     });
@@ -85,9 +84,10 @@ describe("DrawingLayer pointer routing", () => {
     it("blocks text selection so a pen stroke does not drag text on iPad", () => {
         (["draw", "erase"] as const).forEach((tool) => {
             const layer = renderLayer(true, tool);
+            const captureLayer = layer.closest("[data-drawing-capture='true']") as HTMLElement;
 
-            expect(layer.style.userSelect).toBe("none");
-            expect(layer.style.webkitUserSelect).toBe("none");
+            expect(captureLayer.style.userSelect).toBe("none");
+            expect(captureLayer.style.webkitUserSelect).toBe("none");
         });
 
         const displayLayer = renderLayer(false, "draw");
@@ -97,10 +97,11 @@ describe("DrawingLayer pointer routing", () => {
 
     it("captures input and blocks board panning while erasing", () => {
         const layer = renderLayer(true, "erase");
+        const captureLayer = layer.closest("[data-drawing-capture='true']") as HTMLElement;
 
-        expect(layer.style.pointerEvents).toBe("auto");
-        expect(layer.style.touchAction).toBe("none");
-        expect(layer.closest(canStartBoardPanSelector)).not.toBeNull();
+        expect(captureLayer.style.pointerEvents).toBe("auto");
+        expect(captureLayer.style.touchAction).toBe("none");
+        expect(layer.closest(canStartBoardPanSelector)).toBe(captureLayer);
     });
 
     it("attaches no pointer handler while drawing mode is off", () => {
