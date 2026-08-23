@@ -89,8 +89,7 @@ export default function DrawingLayer({
     }
 
     return (
-        <svg
-            ref={layerRef}
+        <div
             data-drawing-capture="true"
             className="absolute left-0 top-0 h-full w-full"
             style={{
@@ -102,34 +101,51 @@ export default function DrawingLayer({
                 WebkitUserSelect: "none",
                 userSelect: "none",
             }}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerUp}
-            onPointerLeave={handlePointerLeave}
+            onPointerDown={(event) => event.stopPropagation()}
+            onPointerMove={(event) => event.stopPropagation()}
+            onPointerUp={(event) => event.stopPropagation()}
+            onPointerCancel={(event) => event.stopPropagation()}
         >
-            <StrokePaths strokes={strokes} />
-            {currentPoints.length > 0 && (
-                <path
-                    d={strokeToPath(currentPoints)}
-                    stroke={penColor}
-                    strokeWidth={penWidth}
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeOpacity={markerStrokeOpacity}
-                />
-            )}
-            {drawingTool === "erase" && eraserPoint && (
-                <circle
-                    cx={eraserPoint[0]}
-                    cy={eraserPoint[1]}
-                    r={eraserRadius}
-                    fill="#ffffff"
-                    stroke="#a3a3a3"
-                    strokeWidth={1 / zoom}
-                />
-            )}
-        </svg>
+            <svg
+                ref={layerRef}
+                className="block h-full w-full"
+                style={{
+                    pointerEvents: "auto",
+                    touchAction: "none",
+                    cursor: "crosshair",
+                    WebkitTouchCallout: "none",
+                    WebkitUserSelect: "none",
+                    userSelect: "none",
+                }}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
+                onPointerLeave={handlePointerLeave}
+            >
+                <StrokePaths strokes={strokes} />
+                {currentPoints.length > 0 && (
+                    <path
+                        d={strokeToPath(currentPoints)}
+                        stroke={penColor}
+                        strokeWidth={penWidth}
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeOpacity={markerStrokeOpacity}
+                    />
+                )}
+                {drawingTool === "erase" && eraserPoint && (
+                    <circle
+                        cx={eraserPoint[0]}
+                        cy={eraserPoint[1]}
+                        r={eraserRadius}
+                        fill="#ffffff"
+                        stroke="#a3a3a3"
+                        strokeWidth={1 / zoom}
+                    />
+                )}
+            </svg>
+        </div>
     );
 }

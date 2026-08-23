@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import DrawingLayer from "@/components/DrawingLayer";
 import type { DrawingTool } from "@/hooks/useBoardDrawing";
@@ -44,10 +44,42 @@ describe("DrawingLayer pointer routing", () => {
 
     it("captures input and blocks board panning while drawing", () => {
         const layer = renderLayer(true, "draw");
+        const captureLayer = layer.closest("[data-drawing-capture='true']") as HTMLElement;
 
         expect(layer.style.pointerEvents).toBe("auto");
         expect(layer.style.touchAction).toBe("none");
-        expect(layer.closest(canStartBoardPanSelector)).not.toBeNull();
+        expect(captureLayer).not.toBeNull();
+        expect(captureLayer.style.touchAction).toBe("none");
+        expect(layer.closest(canStartBoardPanSelector)).toBe(captureLayer);
+    });
+
+    it("keeps drawing pointer events from reaching the board pan layer", () => {
+        const handleBoardPointerDown = vi.fn();
+        const { container } = render(
+            <div onPointerDown={handleBoardPointerDown}>
+                <DrawingLayer
+                    strokes={[stroke]}
+                    drawingMode
+                    drawingTool="draw"
+                    penColor={defaultPenColor}
+                    penWidth={defaultPenWidth}
+                    zoom={0.75}
+                    onStrokeEnd={vi.fn()}
+                    onErase={vi.fn()}
+                />
+            </div>
+        );
+
+        fireEvent.pointerDown(container.querySelector("svg")!, {
+            pointerId: 1,
+            pointerType: "touch",
+            isPrimary: true,
+            buttons: 1,
+            clientX: 20,
+            clientY: 20,
+        });
+
+        expect(handleBoardPointerDown).not.toHaveBeenCalled();
     });
 
     it("blocks text selection so a pen stroke does not drag text on iPad", () => {
