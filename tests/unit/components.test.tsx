@@ -6,6 +6,7 @@ import BoardMessage from "@/components/BoardMessage";
 import BoardNavigator from "@/components/BoardNavigator";
 import BoardToolBar from "@/components/BoardToolBar";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import DrawingToolBar from "@/components/DrawingToolBar";
 import PressableButton from "@/components/PressableButton";
 
 describe("PressableButton", () => {
@@ -87,6 +88,28 @@ describe("Lite board controls", () => {
 
         fireEvent.keyDown(document, { key: "Escape" });
         expect(onClose).toHaveBeenCalledOnce();
+    });
+
+    it("keeps drawing controls focused on drawing and erasing without a duplicate pan tool", () => {
+        const portalTarget = document.createElement("div");
+        portalTarget.id = "card-tool-portal";
+        document.body.appendChild(portalTarget);
+
+        render(
+            <DrawingToolBar
+                drawingTool="draw"
+                penColor="#1f2937"
+                penWidth={4}
+                onChangeColor={vi.fn()}
+                onChangeWidth={vi.fn()}
+                onToggleErase={vi.fn()}
+                onUndo={vi.fn()}
+            />,
+        );
+
+        expect(screen.getByRole("button", { name: "Erase" })).toBeVisible();
+        expect(screen.queryByRole("button", { name: "Pan the board" })).not.toBeInTheDocument();
+        portalTarget.remove();
     });
 });
 

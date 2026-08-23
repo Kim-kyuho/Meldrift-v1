@@ -6,12 +6,11 @@
 
 | Prop | 타입 | 사용처 |
 | --- | --- | --- |
-| `drawingTool` | `DrawingTool` | 지우개/팬 버튼의 `aria-pressed`·아이콘 색(108~127줄) |
+| `drawingTool` | `DrawingTool` | 지우개 버튼의 `aria-pressed`·아이콘 색 |
 | `penColor` | `string` | Palette 아이콘 색(69줄) |
 | `penWidth` | `number` | 굵기 아이콘의 `strokeWidth`(90줄) |
 | `onChangeColor` | `(color: string) => void` | 색상 선택 시(48줄) |
 | `onChangeWidth` | `(width: number) => void` | 굵기 선택 시(53줄) |
-| `onTogglePan` | `() => void` | Pan 버튼 클릭(123줄) |
 | `onToggleErase` | `() => void` | Erase 버튼 클릭(112줄) |
 | `onUndo` | `() => void` | Undo 버튼 클릭(64줄) |
 
@@ -32,7 +31,7 @@
 | `toggleWidthMenu` | `openWidthMenu` 토글 + `openColorMenu` 강제 닫기 |
 | `handleColorSelect(color)` | `onChangeColor(color)` 호출 후 메뉴 닫기 |
 | `handleWidthSelect(width)` | `onChangeWidth(width)` 호출 후 메뉴 닫기 |
-| `closeMenus()` | 두 메뉴 모두 닫기 — Erase/Pan 버튼 클릭 시 먼저 호출(111, 122줄) |
+| `closeMenus()` | 두 메뉴 모두 닫기 — Erase 버튼 클릭 시 먼저 호출 |
 
 ## 렌더 구조 (62~134줄)
 
@@ -44,7 +43,6 @@
 | Pen width (89줄) | 항상 | `Minus` 아이콘의 `strokeWidth`로 현재 굵기 시각화 |
 | 굵기 팝업 (92줄) | `openWidthMenu`일 때만 | `penWidths`(Thin 2 / Medium 4 / Bold 8) 순회 |
 | Erase (107줄) | 항상, `aria-pressed={drawingTool==="erase"}` | 라벨이 상태에 따라 "Erase" ↔ "Stop erasing"으로 바뀜, 활성 시 아이콘이 `#ec4899`(activeToolColor) |
-| Pan (118줄) | 항상, `aria-pressed={drawingTool==="pan"}` | 라벨 "Pan the board" ↔ "Stop panning", 활성 시 동일 강조색 |
 
 ## 도구 상태 소유자: `useBoardDrawing` (`hooks/useBoardDrawing.ts`)
 
@@ -54,7 +52,7 @@
 | --- | --- | --- |
 | `strokes` | `initialStrokes` | 확정된 획 배열 |
 | `drawingMode` | `false` | 그리기 레이어 입력 활성 여부 |
-| `drawingTool` | `"draw"` | `"draw" \| "pan" \| "erase"` |
+| `drawingTool` | `"draw"` | `"draw" \| "erase"` |
 | `penColor` | `defaultPenColor` ("Ink" `#1f2937`) | - |
 | `penWidth` | `defaultPenWidth` (Medium, 4) | - |
 
@@ -62,8 +60,8 @@
 - 이미 그리기 모드 → 모드 종료 + `drawingTool`을 `"draw"`로 리셋
 - 아니면 → 모드 진입 + 도구를 `"draw"`로 리셋
 
-### `toggleDrawingTool(tool)` (72~74줄)
-같은 도구를 다시 누르면 `"draw"`로 되돌아가는 **토글** 방식 — `handleTogglePanTool`/`handleToggleEraseTool`이 이를 감쌈.
+### `handleToggleEraseTool`
+지우개를 다시 누르면 `"draw"`로 되돌아가는 토글 방식이다.
 
 ### `handleStrokeEnd`/`handleErase`/`handleUndoStroke` (76~112줄)
 셋 다 React의 `strokes` 상태를 직접 갱신한다. `handleErase`는 실제로 지워진 게 없으면 `eraseStrokesAlongPath`가 기존 배열 참조를 그대로 반환한다.
@@ -71,4 +69,5 @@
 ## 알려진 특이사항
 
 - 그리기 중에는 Export와 SQLite autosave가 잠긴다. `BoardToolBar` 왼쪽 아래의 `Check` 버튼으로 모드를 종료하면 `BoardClient`의 snapshot autosave가 브라우저 SQLite에 획을 저장한다.
+- 별도 Pan 도구는 없다. 보드를 이동하려면 필기 모드를 끝낸 뒤 기본 보드 패닝을 사용한다.
 - Undo 버튼은 항상 클릭 가능하게 렌더되며(disabled 처리 없음) 빈 스택에서는 `handleUndoStroke`가 조용히 아무 것도 하지 않는다 — 사용자에게 "더 이상 undo할 게 없다"는 피드백이 없다.
