@@ -1,6 +1,11 @@
 import { expect, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
-import { getBoardMenuButton, getBoardToolButton, gotoHydratedPage } from "./helpers";
+import {
+    boardDatabaseContainsText,
+    getBoardMenuButton,
+    getBoardToolButton,
+    gotoHydratedPage,
+} from "./helpers";
 
 const onePixelPng = Buffer.from(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
@@ -41,6 +46,10 @@ test.describe("KyuBoard Lite home", () => {
         await expect(imageCard).toBeVisible();
         await page.locator(".kyu-board").click({ position: { x: 20, y: 20 } });
         await expect(imageCard).toHaveAttribute("data-editing", "false");
+        await expect.poll(
+            () => boardDatabaseContainsText(page, "local.png"),
+            { message: "the local image to be written to the browser SQLite file" },
+        ).toBe(true);
 
         await page.reload();
         await expect(page.locator('[class*="image-rnd-"] img').first()).toBeVisible();
