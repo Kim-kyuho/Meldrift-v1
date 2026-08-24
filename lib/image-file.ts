@@ -40,41 +40,62 @@ export function imageBytesToBlob(data: Uint8Array, mimeType: string) {
     return new Blob([copy.buffer], { type: mimeType });
 }
 
-export function imageBytesToDataUrl(data: Uint8Array, mimeType: string) {
-    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    let encoded = "";
-
-    for (let index = 0; index < data.length; index += 3) {
-        const first = data[index];
-        const second = data[index + 1];
-        const third = data[index + 2];
-        const value = (first << 16) | ((second ?? 0) << 8) | (third ?? 0);
-
-        encoded += alphabet[(value >> 18) & 63];
-        encoded += alphabet[(value >> 12) & 63];
-        encoded += second === undefined ? "=" : alphabet[(value >> 6) & 63];
-        encoded += third === undefined ? "=" : alphabet[value & 63];
-    }
-
-    return `data:${mimeType};base64,${encoded}`;
-}
-
 const canvasToBlob = (canvas: HTMLCanvasElement, type: string, quality?: number) =>
     new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality));
 
-const loadImage = (file: File) => {
-    const objectUrl = URL.createObjectURL(file);
+const loadImageBlob = (blob: Blob, errorMessage: string) => {
+    const objectUrl = URL.createObjectURL(blob);
     const image = new Image();
 
     return new Promise<{ image: HTMLImageElement; objectUrl: string }>((resolve, reject) => {
         image.onload = () => resolve({ image, objectUrl });
         image.onerror = () => {
             URL.revokeObjectURL(objectUrl);
-            reject(new Error("The selected image could not be decoded."));
+            reject(new Error(errorMessage));
         };
         image.src = objectUrl;
     });
 };
+
+const loadImage = (file: File) =>
+    loadImageBlob(file, "The selected image could not be decoded.");
+
+export async function imageBytesToPng(data: Uint8Array, mimeType: string) {
+    if (!isSupportedImageMimeType(mimeType) || data.byteLength < 1) {
+        throw new Error("The stored image cannot be exported.");
+    }
+
+    if (mimeType === "image/png") {
+        return new Uint8Array(data);
+    }
+
+    const { image, objectUrl } = await loadImageBlob(
+        imageBytesToBlob(data, mimeType),
+        "The stored image could not be decoded for export.",
+    );
+
+    try {
+        if (image.naturalWidth < 1 || image.naturalHeight < 1) {
+            throw new Error("The stored image has invalid dimensions.");
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = image.naturalWidth;
+        canvas.height = image.naturalHeight;
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("PNG export is not available in this browser.");
+
+        context.drawImage(image, 0, 0);
+        const png = await canvasToBlob(canvas, "image/png");
+        if (!png || png.type !== "image/png") {
+            throw new Error("The image could not be converted to PNG.");
+        }
+
+        return new Uint8Array(await png.arrayBuffer());
+    } finally {
+        URL.revokeObjectURL(objectUrl);
+    }
+}
 
 export async function prepareImageFile(file: File): Promise<PreparedImage> {
     if (!isSupportedImageMimeType(file.type)) {

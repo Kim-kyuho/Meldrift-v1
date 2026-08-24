@@ -1,7 +1,17 @@
 import TurndownService from "turndown";
 import type { BoardSnapshot } from "@/lib/board-state";
-import { imageBytesToDataUrl } from "@/lib/image-file";
 import { tableSourceToMarkdown } from "@/lib/table-card";
+
+export type BoardMarkdownImageAsset = {
+    path: string;
+    data: Uint8Array;
+    mimeType: string;
+};
+
+export type BoardMarkdownDocument = {
+    markdown: string;
+    imageAssets: BoardMarkdownImageAsset[];
+};
 
 type BoardCard = {
     type: "image" | "mermaid" | "table";
@@ -13,6 +23,7 @@ type BoardCard = {
     z: number;
     width: number;
     height: number;
+    imageAsset: BoardMarkdownImageAsset | null;
 };
 
 const typeOrder: Record<BoardCard["type"], number> = { image: 1, mermaid: 2, table: 3 };
@@ -40,26 +51,42 @@ function renderCard(card: BoardCard) {
 }
 
 export function compileBoardMarkdown(snapshot: BoardSnapshot) {
+    return compileBoardMarkdownDocument(snapshot).markdown;
+}
+
+export function compileBoardMarkdownDocument(snapshot: BoardSnapshot): BoardMarkdownDocument {
     const cards: BoardCard[] = [
-        ...snapshot.images.map((image) => ({
-            type: "image" as const,
-            id: image.imageId,
-            content: image.data && image.mimeType
-                ? imageBytesToDataUrl(image.data, image.mimeType)
-                : image.url,
-            label: image.label,
-            x: image.x, y: image.y, z: image.z, width: image.width, height: image.height,
-        })),
+        ...snapshot.images.map((image) => {
+            const imageAsset = image.data && image.mimeType
+                ? {
+                    path: `images/image-${image.imageId}.png`,
+                    data: image.data,
+                    mimeType: image.mimeType,
+                }
+                : null;
+
+            return {
+                type: "image" as const,
+                id: image.imageId,
+                content: imageAsset ? `./${imageAsset.path}` : image.url,
+                label: image.label,
+                x: image.x, y: image.y, z: image.z, width: image.width, height: image.height,
+                imageAsset,
+            };
+        }),
         ...snapshot.mermaids.map((mermaid) => ({
             type: "mermaid" as const, id: mermaid.id, content: mermaid.source, label: null,
             x: mermaid.x, y: mermaid.y, z: mermaid.z, width: mermaid.width, height: mermaid.height,
+            imageAsset: null,
         })),
         ...snapshot.tables.map((table) => ({
             type: "table" as const, id: table.id, content: JSON.stringify(table.source), label: null,
             x: table.x, y: table.y, z: table.z, width: table.width, height: table.height,
+            imageAsset: null,
         })),
     ];
     const markdownParts: string[] = [];
+    const imageAssets: BoardMarkdownImageAsset[] = [];
     const renderedCards = new Set<string>();
 
     snapshot.memos.forEach((memo) => {
@@ -85,8 +112,12 @@ export function compileBoardMarkdown(snapshot: BoardSnapshot) {
             if (renderedCards.has(key)) return;
             renderedCards.add(key);
             markdownParts.push(renderCard(card));
+            if (card.imageAsset) imageAssets.push(card.imageAsset);
         });
     });
 
-    return markdownParts.filter(Boolean).join("\n\n");
+    return {
+        markdown: markdownParts.filter(Boolean).join("\n\n"),
+        imageAssets,
+    };
 }

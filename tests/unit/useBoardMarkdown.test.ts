@@ -1,7 +1,28 @@
-import { act, renderHook } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, render, renderHook, screen, waitFor } from "@testing-library/react";
+import { strFromU8, unzipSync } from "fflate";
+import { createElement } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import BoardMarkdownView from "@/components/BoardMarkdownView";
 import { useBoardMarkdown } from "@/hooks/useBoardMarkdown";
 import { createEmptyBoardSnapshot, type BoardSnapshot } from "@/lib/board-state";
+
+function installObjectUrlMock() {
+    const blobs: Blob[] = [];
+    const createObjectURL = vi.fn((blob: Blob) => {
+        blobs.push(blob);
+        return `blob:test-${blobs.length}`;
+    });
+    const revokeObjectURL = vi.fn();
+    const NativeURL = URL;
+
+    class MockURL extends NativeURL {
+        static createObjectURL = createObjectURL;
+        static revokeObjectURL = revokeObjectURL;
+    }
+
+    vi.stubGlobal("URL", MockURL);
+    return { blobs, createObjectURL, revokeObjectURL };
+}
 
 function markdownSnapshot(): BoardSnapshot {
     return {
@@ -18,6 +39,11 @@ function markdownSnapshot(): BoardSnapshot {
 }
 
 describe("useBoardMarkdown", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
     it("compiles local board state and separates Mermaid source blocks", () => {
         const { result } = renderHook(() => useBoardMarkdown(markdownSnapshot()));
         expect(result.current.loading).toBe(false);
@@ -43,31 +69,69 @@ describe("useBoardMarkdown", () => {
         vi.unstubAllGlobals();
     });
 
-    it("embeds local image bytes in the Markdown file", () => {
+    it("uses temporary Blob URLs for local image previews and revokes them", async () => {
+        const { createObjectURL, revokeObjectURL } = installObjectUrlMock();
         const snapshot = markdownSnapshot();
         snapshot.mermaids = [];
         snapshot.images = [{
             imageId: 1, boardId: 1, url: "", data: new Uint8Array([1, 2, 3]),
-            mimeType: "image/webp", label: "Local",
+            mimeType: "image/png", label: "Local",
+            x: 0, y: 0, z: 2, width: 50, height: 50,
+        }];
+
+        const { result, unmount } = renderHook(() => useBoardMarkdown(snapshot));
+        expect(result.current.markdown).toContain("![Local](./images/image-1.png)");
+        await waitFor(() => expect(result.current.loading).toBe(false));
+        expect(result.current.previewImageUrls["./images/image-1.png"]).toBe("blob:test-1");
+        expect(createObjectURL).toHaveBeenCalledWith(expect.objectContaining({ type: "image/png" }));
+
+        unmount();
+        expect(revokeObjectURL).toHaveBeenCalledWith("blob:test-1");
+    });
+
+    it("renders a compiled local image from its temporary Blob URL", async () => {
+        installObjectUrlMock();
+        const snapshot = markdownSnapshot();
+        snapshot.mermaids = [];
+        snapshot.images = [{
+            imageId: 2, boardId: 1, url: "", data: new Uint8Array([1, 2, 3]),
+            mimeType: "image/webp", label: "Local preview",
+            x: 0, y: 0, z: 2, width: 50, height: 50,
+        }];
+
+        render(createElement(BoardMarkdownView, { snapshot, onClose: vi.fn() }));
+
+        await waitFor(() => expect(screen.getByAltText("Local preview"))
+            .toHaveAttribute("src", "blob:test-1"));
+    });
+
+    it("downloads Markdown and local PNG images in one ZIP archive", async () => {
+        const { blobs, revokeObjectURL } = installObjectUrlMock();
+        let downloadName = "";
+        vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) {
+            downloadName = this.download;
+        });
+        const snapshot = markdownSnapshot();
+        snapshot.mermaids = [];
+        snapshot.images = [{
+            imageId: 4, boardId: 1, url: "", data: new Uint8Array([137, 80, 78, 71]),
+            mimeType: "image/png", label: "Saved image",
             x: 0, y: 0, z: 2, width: 50, height: 50,
         }];
 
         const { result } = renderHook(() => useBoardMarkdown(snapshot));
-        expect(result.current.markdown).toContain("![Local](data:image/webp;base64,AQID)");
-    });
+        await waitFor(() => expect(result.current.loading).toBe(false));
+        await act(async () => {
+            await result.current.handleMarkdownDownload();
+        });
 
-    it("downloads the generated markdown and revokes the object URL", () => {
-        const createObjectURL = vi.fn().mockReturnValue("blob:test");
-        const revokeObjectURL = vi.fn();
-        Object.defineProperty(URL, "createObjectURL", { configurable: true, value: createObjectURL });
-        Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: revokeObjectURL });
-        const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
-
-        const { result } = renderHook(() => useBoardMarkdown(markdownSnapshot()));
-        act(() => result.current.handleMarkdownDownload());
-
-        expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
-        expect(click).toHaveBeenCalledOnce();
-        expect(revokeObjectURL).toHaveBeenCalledWith("blob:test");
+        const archiveBlob = blobs.at(-1)!;
+        expect(archiveBlob.type).toBe("application/zip");
+        const archive = unzipSync(new Uint8Array(await archiveBlob.arrayBuffer()));
+        expect(strFromU8(archive["board-1.md"]))
+            .toContain("![Saved image](./images/image-4.png)");
+        expect(archive["images/image-4.png"]).toEqual(new Uint8Array([137, 80, 78, 71]));
+        expect(downloadName).toBe("meldrift-board-1.zip");
+        expect(revokeObjectURL).toHaveBeenCalledWith("blob:test-2");
     });
 });

@@ -12,7 +12,7 @@ Meldrift Free Edition은 로그인과 보드 목록이 없는 단일 사용자·
 Next.js page (/)
   └─ BoardClient (React state)
        ├─ 카드/드로잉 편집
-       ├─ 클라이언트 Markdown 컴파일
+       ├─ 클라이언트 Markdown 컴파일/ZIP 생성
        └─ browser-db client (RPC)
             └─ Web Worker
                  ├─ SQLite WASM in-memory DB
@@ -44,7 +44,22 @@ AI 어시스턴트 라우트는 이 흐름 밖에 있다. 보드 데이터를 �
 
 ## 로컬 이미지
 
-이미지 버튼은 숨겨진 파일 입력을 연다. JPEG, PNG, WebP 원본을 Canvas에서 긴 변 1920px 이하의 WebP로 압축하고, 최대 5 MiB인 결과 바이트를 SQLite BLOB에 저장한다. 카드에서는 Object URL을 잠깐 만들어 표시하며 Export/Import 파일에도 이미지 자체가 포함된다. 기존 schema v1의 HTTP(S) URL 이미지는 v2로 자동 마이그레이션해 계속 읽는다.
+이미지 버튼은 숨겨진 파일 입력을 연다. JPEG, PNG, WebP 원본을 Canvas에서 긴 변 1920px 이하의 WebP로 압축하고, 최대 5 MiB인 결과 바이트를 SQLite BLOB에 저장한다. 카드와 Markdown 미리보기는 필요한 동안에만 Object URL을 만들어 표시하고 사용이 끝나면 해제한다. Object URL을 해제해도 SQLite BLOB은 삭제되지 않는다. Export/Import 파일에도 이미지 자체가 포함된다. 기존 schema v1의 HTTP(S) URL 이미지는 v2로 자동 마이그레이션해 계속 읽는다.
+
+## Markdown 컴파일
+
+Compile to Markdown은 현재 React snapshot만 사용하며 서버 API나 DB 재조회 없이 브라우저에서 실행한다. 메모의 TipTap HTML을 Markdown으로 바꾸고, 기존 규칙에 따라 메모 모서리와 겹치는 최상단 이미지·Mermaid·표를 문서에 한 번씩 삽입한다. 메모와 연결되지 않은 카드나 겹치더라도 메모 모서리를 포함하지 않는 카드는 컴파일 대상이 아니다.
+
+로컬 이미지 참조는 `./images/image-{imageId}.png` 형식이다. 미리보기에서는 SQLite에 저장된 원본 압축 바이트로 임시 Blob URL을 만들어 이 경로에 대응시킨다. 다운로드할 때만 JPEG/WebP 바이트를 PNG로 변환하고 Markdown과 함께 `meldrift-board-{boardId}.zip`으로 묶는다. 기존 v1 HTTP(S) URL 이미지는 외부 URL을 Markdown에 유지하며 ZIP에 복사하지 않는다.
+
+```text
+meldrift-board-{boardId}.zip
+├── board-{boardId}.md
+└── images/
+    └── image-{imageId}.png
+```
+
+이 다운로드는 읽기 가능한 문서를 내보내는 기능이다. 전체 작업 상태를 백업·복원하는 아래 SQLite Export/Import와는 별개이며 IndexedDB의 저장 형식이나 이미지 BLOB을 변경하지 않는다.
 
 ## Export
 
