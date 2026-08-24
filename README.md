@@ -18,7 +18,7 @@ Ideas do not always begin in a clear order. Meldrift allows memos, images, table
 - Draw on the board with a mouse, touch input, or Apple Pencil.
 - Search memos and navigate through them in order.
 - Zoom and pan across the board.
-- Compile board contents into Markdown, preview the result, and download it as an `.md` file.
+- Compile board contents into Markdown, preview local images from browser storage, and download one ZIP containing the Markdown file and referenced PNG images.
 - Store the board and compressed image data in a browser-local SQLite file.
 - Export and import the complete board as a portable `meldrift-free.sqlite` file.
 - Use an optional AI assistant to create, edit, delete, and arrange cards after reviewing its proposed changes.

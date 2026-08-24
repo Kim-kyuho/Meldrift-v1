@@ -47,8 +47,10 @@ export default function BoardMarkdownView({ snapshot, onClose }: BoardMarkdownVi
     const {
         markdown,
         markdownSections,
+        previewImageUrls,
         errorMessage,
         loading,
+        downloading,
         handleMarkdownDownload,
     } = useBoardMarkdown(snapshot);
 
@@ -80,8 +82,9 @@ export default function BoardMarkdownView({ snapshot, onClose }: BoardMarkdownVi
                         <PressableButton
                             className="absolute right-5 top-4 z-10 rounded-full bg-white p-3 shadow-md sm:right-8 sm:top-6"
                             onClick={handleMarkdownDownload}
+                            disabled={downloading}
                             aria-label="Download Markdown"
-                            title="Download Markdown"
+                            title="Download Markdown archive"
                         >
                             <Download className="h-4 w-4" />
                         </PressableButton>
@@ -105,6 +108,19 @@ export default function BoardMarkdownView({ snapshot, onClose }: BoardMarkdownVi
                                             key={`markdown-${index}`}
                                             remarkPlugins={[remarkGfm]}
                                             rehypePlugins={[rehypeRaw, rehypeSanitize]}
+                                            components={{
+                                                img: ({ src, alt, title }) => (
+                                                    // Blob URLs are already resized local images and must bypass Next image optimization.
+                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                    <img
+                                                        src={typeof src === "string"
+                                                            ? previewImageUrls[src] ?? src
+                                                            : src}
+                                                        alt={alt ?? ""}
+                                                        title={title}
+                                                    />
+                                                ),
+                                            }}
                                         >
                                             {section}
                                         </ReactMarkdown>
